@@ -1,7 +1,7 @@
 module RoundingEmulation
 
 export twosum, add_up, add_down
-export twoprodfma, prod_up, prod_down
+export twoprod, mul_up, mul_down
 
 # Add
 
@@ -13,31 +13,29 @@ end
 
 twosum(a, b) = abs(a) > abs(b) ? fast_twosum(a, b) : fast_twosum(b, a)
 
-function add_up(a, b)
-    x, y = twosum(a, b)
-    y > 0 ? nextfloat(x) : x
-end
-
-function add_down(a, b)
-    x, y = twosum(a, b)
-    y < 0 ? prevfloat(x) : x
-end
-
 # Product
 
-function twoprodfma(a, b)
+function twoprod(a, b)
     x = a * b
     x, fma(a, b, -x)
 end
 
-function prod_up(a, b)
-    x, y = twoprodfma(a, b)
-    y > 0 ? nextfloat(x) : x
-end
+# Rounding
 
-function prod_down(a, b)
-    x, y = twoprodfma(a, b)
-    y < 0 ? prevfloat(x) : x
+for (op, ar) in zip((:add, :mul), (:sum, :prod))
+    @eval begin
+        # RoundUp
+        function $(Symbol(op, "_up"))(a, b)
+            x, y = $(Symbol("two", ar))(a, b)
+            y > 0 ? nextfloat(x) : x
+        end
+
+        # RoundDown
+        function $(Symbol(op, "_down"))(a, b)
+            x, y = $(Symbol("two", ar))(a, b)
+            y < 0 ? prevfloat(x) : x
+        end
+    end
 end
 
 end # module

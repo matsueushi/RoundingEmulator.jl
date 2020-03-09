@@ -4,32 +4,30 @@ import Base.Rounding
 using Test
 
 @testset "setrounding_raw" begin
-    N = 10^5
+
+    N = 3
     a, b = randn(N), randn(N)
 
-    add_a_b_up = add_up.(a, b)
-    add_b_a_up = add_up.(b, a)
-    add_a_b_down = add_down.(a, b)
-    add_b_a_down = add_down.(b, a)
+    for (op, base_op) in zip((:add, :mul), (:+, :*))
+        @eval begin
+            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
 
-    prod_a_b_up = prod_up.(a, b)
-    prod_b_a_up = prod_up.(b, a)
-    prod_a_b_down = prod_down.(a, b)
-    prod_b_a_down = prod_down.(b, a)
-    
-    Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
-    @test all(add_a_b_up .== a .+ b)
-    @test all(add_b_a_up .== a .+ b)
-    @test all(prod_a_b_up .== a .* b)
-    @test all(prod_b_a_up .== a .* b)
+            $(Symbol(op, "_a_b_up")) = $(Symbol(op, "_up")).($a, $b)
+            $(Symbol(op, "_b_a_up")) = $(Symbol(op, "_up")).($b, $a)
+            $(Symbol(op, "_a_b_down")) = $(Symbol(op, "_down")).($a, $b)
+            $(Symbol(op, "_b_a_down")) = $(Symbol(op, "_down")).($b, $a)
 
-    Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
-    @test all(add_a_b_down .== a .+ b)
-    @test all(add_b_a_down .== a .+ b)
-    @test all(prod_a_b_down .== a .* b)
-    @test all(prod_b_a_down .== a .* b)
+            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
+            @test all($(Symbol(op, "_a_b_up")) .== broadcast($base_op, $a, $b))
+            @test all($(Symbol(op, "_b_a_up")) .== broadcast($base_op, $b, $a))
 
-    Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
+            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
+            @test all($(Symbol(op, "_a_b_down")) .== broadcast($base_op, $a, $b))
+            @test all($(Symbol(op, "_b_a_down")) .== broadcast($base_op, $b, $a))
+        end
+
+        Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
+    end
 end
 
 
@@ -48,11 +46,11 @@ end
 @testset "twoprod overflow" begin
     # http://verifiedby.me/adiary/09
     a, b = 6.929001713869936e+236, 2.5944475251952003e+71
-    @test twoprodfma(a, b) == (1.7976931348623157e308, -1.0027614963959625e291)
-    @test twoprodfma(b, a) == (1.7976931348623157e308, -1.0027614963959625e291)
+    @test twoprod(a, b) == (1.7976931348623157e308, -1.0027614963959625e291)
+    @test twoprod(b, a) == (1.7976931348623157e308, -1.0027614963959625e291)
 
-    @test prod_up(a, b) == a * b
-    @test prod_up(b, a) == a * b
-    @test prod_down(a, b) == prevfloat(a * b)
-    @test prod_down(b, a) == prevfloat(b * a)
+    @test mul_up(a, b) == a * b
+    @test mul_up(b, a) == a * b
+    @test mul_down(a, b) == prevfloat(a * b)
+    @test mul_down(b, a) == prevfloat(b * a)
 end
