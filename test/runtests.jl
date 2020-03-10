@@ -5,7 +5,7 @@ using Printf
 using Test
 
 function check_op(op, updown, ai, bi, calc, raw)
-    if isequal(calc, raw) || (calc == raw == zero(calc))
+    if isequal(calc, raw) # -0.0 is equal to 0.0 ?
         return true
     else
         @info("Erorr", op, updown)
@@ -45,11 +45,11 @@ function rounding_check(a, b)
 end
 
 @testset "setrounding_raw" begin
-    N = 10^5 # enough?
+    N = 10 # enough?
     a, b = randn(N), randn(N)
 
     special_values = [
-        0.0, 1.0, -1.0,
+        0.0, -0.0, 1.0, -1.0,
         nextfloat(zero(Float64)), prevfloat(zero(Float64)),
         floatmin(Float64), -floatmin(Float64),
         eps(Float64), -eps(Float64),
@@ -70,26 +70,18 @@ end
     end
 end
 
-@testset "twosum overflow" begin
+@testset "Overflow, Underflow" begin
     # http://verifiedby.me/adiary/09
-    a, b = 3.5630624444874539e+307, -1.7976931348623157e+308
-    @test twosum(a, b) == (-1.4413868904135704e308, 9.9792015476736e291)
-    @test twosum(b, a) == (-1.4413868904135704e308, 9.9792015476736e291)
-
-    @test add_up(a, b) == nextfloat(a + b)
-    @test add_up(b, a) == nextfloat(a + b)
-    @test add_down(a, b) == a + b
-    @test add_down(b, a) == a + b
-end
-
-@testset "twoprod overflow" begin
-    # http://verifiedby.me/adiary/09
-    a, b = 6.929001713869936e+236, 2.5944475251952003e+71
-    @test twoprod(a, b) == (1.7976931348623157e308, -1.0027614963959625e291)
-    @test twoprod(b, a) == (1.7976931348623157e308, -1.0027614963959625e291)
-
-    @test mul_up(a, b) == a * b
-    @test mul_up(b, a) == a * b
-    @test mul_down(a, b) == prevfloat(a * b)
-    @test mul_down(b, a) == prevfloat(b * a)
+    a = [
+        3.5630624444874539e+307, # twosum overflow
+        6.929001713869936e+236, # twoprod overflow
+        2.0^-600, # twoprod underflow
+    ]
+    b = [
+        -1.7976931348623157e+308,
+        2.5944475251952003e+71,
+        2.0^-400
+    ]
+    rounding_check(a, b)
+    rounding_check(b, a)
 end
