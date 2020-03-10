@@ -5,29 +5,51 @@ using Test
 
 @testset "setrounding_raw" begin
 
-    N = 3
-    a, b = randn(N), randn(N)
-
-    for (op, base_op) in zip((:add, :mul), (:+, :*))
-        @eval begin
+    function rounding_check(a, b)
+        for (op, base_op) in zip((:add, :mul), (:+, :*))
+            @eval begin
+                Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
+    
+                $(Symbol(op, "_a_b_up")) = $(Symbol(op, "_up")).($a, $b)
+                $(Symbol(op, "_b_a_up")) = $(Symbol(op, "_up")).($b, $a)
+                $(Symbol(op, "_a_b_down")) = $(Symbol(op, "_down")).($a, $b)
+                $(Symbol(op, "_b_a_down")) = $(Symbol(op, "_down")).($b, $a)
+    
+                Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
+                @test all($(Symbol(op, "_a_b_up")) .== broadcast($base_op, $a, $b))
+                @test all($(Symbol(op, "_b_a_up")) .== broadcast($base_op, $b, $a))
+    
+                Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
+                @test all($(Symbol(op, "_a_b_down")) .== broadcast($base_op, $a, $b))
+                @test all($(Symbol(op, "_b_a_down")) .== broadcast($base_op, $b, $a))
+            end
+    
             Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
-
-            $(Symbol(op, "_a_b_up")) = $(Symbol(op, "_up")).($a, $b)
-            $(Symbol(op, "_b_a_up")) = $(Symbol(op, "_up")).($b, $a)
-            $(Symbol(op, "_a_b_down")) = $(Symbol(op, "_down")).($a, $b)
-            $(Symbol(op, "_b_a_down")) = $(Symbol(op, "_down")).($b, $a)
-
-            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
-            @test all($(Symbol(op, "_a_b_up")) .== broadcast($base_op, $a, $b))
-            @test all($(Symbol(op, "_b_a_up")) .== broadcast($base_op, $b, $a))
-
-            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
-            @test all($(Symbol(op, "_a_b_down")) .== broadcast($base_op, $a, $b))
-            @test all($(Symbol(op, "_b_a_down")) .== broadcast($base_op, $b, $a))
         end
-
-        Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
     end
+
+    @testset "randn" begin
+        N = 10^5 # enough?
+        a, b = randn(N), randn(N)
+
+        rounding_check(a, b)
+    end
+
+    # @testset "special cases" begin
+    #     special_values = [
+    #         0.0, 1.0, -1.0,
+    #         nextfloat(zero(Float64)), -nextfloat(zero(Float64)),
+    #         floatmin(Float64), -floatmin(Float64),
+    #         # floatmax(Float64), -floatmax(Float64),
+    #         eps(Float64), -eps(Float64)
+    #         ]
+    #     len = Base.length(special_values)
+
+    #     a = repeat(special_values, len)
+    #     b = sort(a)
+
+    #     rounding_check(a, b)
+    # end
 end
 
 
