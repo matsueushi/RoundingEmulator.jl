@@ -9,47 +9,53 @@ using Test
         for (op, base_op) in zip((:add, :mul), (:+, :*))
             @eval begin
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
-    
                 $(Symbol(op, "_a_b_up")) = $(Symbol(op, "_up")).($a, $b)
                 $(Symbol(op, "_b_a_up")) = $(Symbol(op, "_up")).($b, $a)
                 $(Symbol(op, "_a_b_down")) = $(Symbol(op, "_down")).($a, $b)
                 $(Symbol(op, "_b_a_down")) = $(Symbol(op, "_down")).($b, $a)
     
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
-                @test all($(Symbol(op, "_a_b_up")) .== broadcast($base_op, $a, $b))
-                @test all($(Symbol(op, "_b_a_up")) .== broadcast($base_op, $b, $a))
+                $(Symbol(op, "_a_b_up_raw")) = broadcast($base_op, $a, $b)
+                $(Symbol(op, "_b_a_up_raw")) = broadcast($base_op, $b, $a)
     
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
-                @test all($(Symbol(op, "_a_b_down")) .== broadcast($base_op, $a, $b))
-                @test all($(Symbol(op, "_b_a_down")) .== broadcast($base_op, $b, $a))
+                $(Symbol(op, "_a_b_down_raw")) = broadcast($base_op, $a, $b)
+                $(Symbol(op, "_b_a_down_raw")) = broadcast($base_op, $b, $a)
+
+                # Compare
+                for (ai, bi, a_b_up, b_a_up, a_b_up_raw, b_a_up_raw) in 
+                    zip($a, $b, $(Symbol(op, "_a_b_up")), $(Symbol(op, "_a_b_down")), $(Symbol(op, "_a_b_up_raw")), $(Symbol(op, "_b_a_up_raw")))
+                    @test a_b_up == a_b_up_raw
+                    @test b_a_up == b_a_up_raw
+                end
             end
-    
+
             Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
         end
     end
 
     @testset "randn" begin
-        N = 10^5 # enough?
+        N = 10 # enough?
         a, b = randn(N), randn(N)
 
         rounding_check(a, b)
     end
 
-    # @testset "special cases" begin
-    #     special_values = [
-    #         0.0, 1.0, -1.0,
-    #         nextfloat(zero(Float64)), -nextfloat(zero(Float64)),
-    #         floatmin(Float64), -floatmin(Float64),
-    #         # floatmax(Float64), -floatmax(Float64),
-    #         eps(Float64), -eps(Float64)
-    #         ]
-    #     len = Base.length(special_values)
+    @testset "special cases" begin
+        special_values = [
+            0.0, 1.0, -1.0,
+            nextfloat(zero(Float64)), -nextfloat(zero(Float64)),
+            floatmin(Float64), -floatmin(Float64),
+            # floatmax(Float64), -floatmax(Float64),
+            eps(Float64), -eps(Float64)
+            ]
+        len = Base.length(special_values)
 
-    #     a = repeat(special_values, len)
-    #     b = sort(a)
+        a = repeat(special_values, len)
+        b = sort(a)
 
-    #     rounding_check(a, b)
-    # end
+        rounding_check(a, b)
+    end
 end
 
 
