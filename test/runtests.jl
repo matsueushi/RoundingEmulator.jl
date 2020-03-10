@@ -19,7 +19,7 @@ function check_op(op, updown, ai, bi, calc, raw)
 end
 
 function rounding_check(a, b)
-    for (op, base_op) in zip(("add", "mul"), (:+, :*))
+    for (op, base_op) in zip(("add", "mul", "sub"), (:+, :*, :-))
         @eval begin
             Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
             $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)

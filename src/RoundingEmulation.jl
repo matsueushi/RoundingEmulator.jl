@@ -1,6 +1,7 @@
 module RoundingEmulation
 
 export twosum, add_up, add_down
+export sub_up, sub_down
 export twoprod, mul_up, mul_down
 
 # Add
@@ -67,6 +68,9 @@ function mul_up(a, b)
         x == -Inf && isfinite(a) && isfinite(b) ? -floatmax(x) : x
     end
 end
+
+sub_up(a, b) = add_up(a, -b)
+sub_down(a, b) = add_down(a, -b)
 
 function mul_down(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
