@@ -1,32 +1,38 @@
 using RoundingEmulation
 
 import Base.Rounding
+using Printf
 using Test
 
 @testset "setrounding_raw" begin
 
+    # check_op(ai, bi, up_calc, up_raw) = up_calc == up_raw # ? true : throw(@sprintf("%s, %.17f, %.17f", op, ai, bi))
+
     function rounding_check(a, b)
         for (op, base_op) in zip((:add, :mul), (:+, :*))
             @eval begin
+
+                function check_op(ai, bi, calc, raw)
+                    if calc == raw
+                        return true
+                    else
+                        throw(@sprintf("%.23f, %.23f", ai, bi))
+                    end
+                end
+
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
-                $(Symbol(op, "_a_b_up")) = $(Symbol(op, "_up")).($a, $b)
-                $(Symbol(op, "_b_a_up")) = $(Symbol(op, "_up")).($b, $a)
-                $(Symbol(op, "_a_b_down")) = $(Symbol(op, "_down")).($a, $b)
-                $(Symbol(op, "_b_a_down")) = $(Symbol(op, "_down")).($b, $a)
+                $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
+                $(Symbol(op, "_down_calc")) = $(Symbol(op, "_down")).($a, $b)
     
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
-                $(Symbol(op, "_a_b_up_raw")) = broadcast($base_op, $a, $b)
-                $(Symbol(op, "_b_a_up_raw")) = broadcast($base_op, $b, $a)
+                $(Symbol(op, "_up_raw")) = broadcast($base_op, $a, $b)
     
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
-                $(Symbol(op, "_a_b_down_raw")) = broadcast($base_op, $a, $b)
-                $(Symbol(op, "_b_a_down_raw")) = broadcast($base_op, $b, $a)
+                $(Symbol(op, "_down_raw")) = broadcast($base_op, $a, $b)
 
                 # Compare
-                for (ai, bi, a_b_up, b_a_up, a_b_up_raw, b_a_up_raw) in 
-                    zip($a, $b, $(Symbol(op, "_a_b_up")), $(Symbol(op, "_a_b_down")), $(Symbol(op, "_a_b_up_raw")), $(Symbol(op, "_b_a_up_raw")))
-                    @test a_b_up == a_b_up_raw
-                    @test b_a_up == b_a_up_raw
+                for (ai, bi, up_calc, up_raw) in zip($a, $b, $(Symbol(op, "_up_calc")), $(Symbol(op, "_up_raw")))
+                    @test check_op(ai, bi, up_calc, up_raw)
                 end
             end
 
@@ -39,6 +45,7 @@ using Test
         a, b = randn(N), randn(N)
 
         rounding_check(a, b)
+        rounding_check(b, a)
     end
 
     @testset "special cases" begin
