@@ -4,28 +4,26 @@ import Base.Rounding
 using Printf
 using Test
 
-@testset "setrounding_raw" begin
+function check_op(op, updown, ai, bi, calc, raw)
+    if calc == raw
+        return true
+    else
+        @info("Erorr", op, updown)
+        @info(@sprintf("a = %0.20e, bit rep : %s", ai, bitstring(ai)))
+        @info(@sprintf("b = %0.20e, bit rep : %s", bi, bitstring(bi)))
 
+        @info(@sprintf("calc = %0.20e, bit rep : %s", calc, bitstring(calc)))
+        @info(@sprintf("raw = %0.20e, bit rep : %s", raw, bitstring(raw)))
+        return false
+    end
+end
+
+@testset "setrounding_raw" begin
     # check_op(ai, bi, up_calc, up_raw) = up_calc == up_raw # ? true : throw(@sprintf("%s, %.17f, %.17f", op, ai, bi))
 
     function rounding_check(a, b)
-        for (op, base_op) in zip((:add, :mul), (:+, :*))
+        for (op, base_op) in zip(("add", "mul"), (:+, :*))
             @eval begin
-
-                function check_op(ai, bi, calc, raw)
-                    if calc == raw
-                        return true
-                    else
-                        @info("Rounding error:")
-                        @info(@sprintf("a = %0.20e, bit rep : %s", ai, bitstring(ai)))
-                        @info(@sprintf("b = %0.20e, bit rep : %s", bi, bitstring(bi)))
-
-                        @info(@sprintf("calc = %0.20e, bit rep : %s", calc, bitstring(calc)))
-                        @info(@sprintf("raw = %0.20e, bit rep : %s", raw, bitstring(raw)))
-                        return false
-                    end
-                end
-
                 Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
                 $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
                 $(Symbol(op, "_down_calc")) = $(Symbol(op, "_down")).($a, $b)
@@ -38,16 +36,19 @@ using Test
 
                 # Compare
                 for (ai, bi, up_calc, up_raw) in zip($a, $b, $(Symbol(op, "_up_calc")), $(Symbol(op, "_up_raw")))
-                    @test check_op(ai, bi, up_calc, up_raw)
+                    @test check_op($op, "up", ai, bi, up_calc, up_raw)
+                end
+
+                for (ai, bi, down_calc, down_raw) in zip($a, $b, $(Symbol(op, "_down_calc")), $(Symbol(op, "_down_raw")))
+                    @test check_op($op, "down", ai, bi, down_calc, down_raw)
                 end
             end
-
             Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
         end
     end
 
     @testset "randn" begin
-        N = 10 # enough?
+        N = 10^5 # enough?
         a, b = randn(N), randn(N)
 
         rounding_check(a, b)
