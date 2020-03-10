@@ -24,8 +24,20 @@ end
 
 function add_up(a, b)
     x, y = twosum(a, b)
-    # y > 0
-    isless(zero(y), y) ? nextfloat(x) : x 
+    if isfinite(x)
+        # y > 0
+        isless(zero(y), y) ? nextfloat(x) : x
+    elseif x == Inf
+        Inf
+    elseif x == -Inf
+        if a == -Inf || b == -Inf
+            -Inf
+        else
+            -floatmax(x)
+        end
+    else # NaN
+        NaN
+    end
 end
 
 function add_down(a, b)
@@ -37,8 +49,8 @@ end
 function mul_up(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
-    # y > 0
     if abs(x) >= 2.0^(-969)
+        # y > 0
         isless(zero(y), y) ? nextfloat(x) : x
     else
         mult = 2.0^537
@@ -51,8 +63,8 @@ end
 function mul_down(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
-    # y < 0
     if abs(x) >= 2.0^(-969)
+        # y < 0
         isless(y, zero(y)) ? prevfloat(x) : x
     else
         mult = 2.0^537

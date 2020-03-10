@@ -18,60 +18,57 @@ function check_op(op, updown, ai, bi, calc, raw)
     end
 end
 
-@testset "setrounding_raw" begin
-    # check_op(ai, bi, up_calc, up_raw) = up_calc == up_raw # ? true : throw(@sprintf("%s, %.17f, %.17f", op, ai, bi))
-
-    function rounding_check(a, b)
-        for (op, base_op) in zip(("add", "mul"), (:+, :*))
-            @eval begin
-                Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
-                $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
-                $(Symbol(op, "_down_calc")) = $(Symbol(op, "_down")).($a, $b)
-    
-                Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
-                $(Symbol(op, "_up_raw")) = broadcast($base_op, $a, $b)
-    
-                Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
-                $(Symbol(op, "_down_raw")) = broadcast($base_op, $a, $b)
-
-                # Compare
-                for (ai, bi, up_calc, up_raw) in zip($a, $b, $(Symbol(op, "_up_calc")), $(Symbol(op, "_up_raw")))
-                    @test check_op($op, "up", ai, bi, up_calc, up_raw)
-                end
-
-                for (ai, bi, down_calc, down_raw) in zip($a, $b, $(Symbol(op, "_down_calc")), $(Symbol(op, "_down_raw")))
-                    @test check_op($op, "down", ai, bi, down_calc, down_raw)
-                end
-            end
+function rounding_check(a, b)
+    for (op, base_op) in zip(("add", "mul"), (:+, :*))
+        @eval begin
             Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
+            $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
+            $(Symbol(op, "_down_calc")) = $(Symbol(op, "_down")).($a, $b)
+
+            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
+            $(Symbol(op, "_up_raw")) = broadcast($base_op, $a, $b)
+
+            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
+            $(Symbol(op, "_down_raw")) = broadcast($base_op, $a, $b)
+
+            # Compare
+            for (ai, bi, up_calc, up_raw) in zip($a, $b, $(Symbol(op, "_up_calc")), $(Symbol(op, "_up_raw")))
+                @test check_op($op, "up", ai, bi, up_calc, up_raw)
+            end
+
+            for (ai, bi, down_calc, down_raw) in zip($a, $b, $(Symbol(op, "_down_calc")), $(Symbol(op, "_down_raw")))
+                @test check_op($op, "down", ai, bi, down_calc, down_raw)
+            end
         end
+        Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
     end
+end
+
+@testset "setrounding_raw" begin
+    N = 10^5 # enough?
+    a, b = randn(N), randn(N)
+
+    special_values = [
+        0.0, 1.0, -1.0,
+        nextfloat(zero(Float64)), prevfloat(zero(Float64)),
+        floatmin(Float64), -floatmin(Float64),
+        eps(Float64), -eps(Float64),
+        floatmax(Float64), -floatmax(Float64),
+        -Inf, Inf,
+        ]
 
     @testset "randn" begin
-        N = 10^5 # enough?
-        a, b = randn(N), randn(N)
-
         rounding_check(a, b)
         rounding_check(b, a)
     end
 
     @testset "special cases" begin
-        special_values = [
-            0.0, 1.0, -1.0,
-            nextfloat(zero(Float64)), prevfloat(zero(Float64)),
-            floatmin(Float64), -floatmin(Float64),
-            # floatmax(Float64), -floatmax(Float64),
-            eps(Float64), -eps(Float64)
-            ]
         len = Base.length(special_values)
-
         a = repeat(special_values, len)
         b = sort(a)
-
         rounding_check(a, b)
     end
 end
-
 
 @testset "twosum overflow" begin
     # http://verifiedby.me/adiary/09
