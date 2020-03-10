@@ -58,7 +58,7 @@ end
     @testset "special cases" begin
         special_values = [
             0.0, 1.0, -1.0,
-            nextfloat(zero(Float64)), -nextfloat(zero(Float64)),
+            nextfloat(zero(Float64)), prevfloat(zero(Float64)),
             floatmin(Float64), -floatmin(Float64),
             # floatmax(Float64), -floatmax(Float64),
             eps(Float64), -eps(Float64)
