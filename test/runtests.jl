@@ -5,7 +5,7 @@ using Printf
 using Test
 
 function check_op(op, updown, ai, bi, calc, raw)
-    if calc == raw
+    if isequal(calc, raw) || (calc == raw == zero(calc))
         return true
     else
         @info("Erorr", op, updown)

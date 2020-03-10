@@ -25,52 +25,52 @@ end
 function add_up(a, b)
     x, y = twosum(a, b)
     if isfinite(x)
-        # y > 0
         isless(zero(y), y) ? nextfloat(x) : x
-    elseif x == Inf
-        Inf
-    elseif x == -Inf
-        if a == -Inf || b == -Inf
-            -Inf
-        else
-            -floatmax(x)
-        end
-    else # NaN
-        NaN
+    else
+        x == -Inf && isfinite(a) && isfinite(b) ? -floatmax(x) : x
     end
 end
 
 function add_down(a, b)
     x, y = twosum(a, b)
-    # y < 0
-    isless(y, zero(y)) ? prevfloat(x) : x
+    if isfinite(x)
+        isless(y, zero(y)) ? prevfloat(x) : x
+    else
+        x == Inf && isfinite(a) && isfinite(b) ? floatmax(x) : x
+    end
 end
 
 function mul_up(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
-    if abs(x) >= 2.0^(-969)
-        # y > 0
-        isless(zero(y), y) ? nextfloat(x) : x
+    if isfinite(x)
+        if abs(x) >= 2.0^(-969)
+            isless(zero(y), y) ? nextfloat(x) : x
+        else
+            mult = 2.0^537
+            s, s2 = twoprod(a * mult, b * mult)
+            t = (x * mult) * mult
+            t < s || (t == s && s2 > 0) ? nextfloat(x) : x
+        end
     else
-        mult = 2.0^537
-        s, s2 = twoprod(a * mult, b * mult)
-        t = (x * mult) * mult
-        t < s || (t == s && s2 > 0) ? nextfloat(x) : x
+        x == -Inf && isfinite(a) && isfinite(b) ? -floatmax(x) : x
     end
 end
 
 function mul_down(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
-    if abs(x) >= 2.0^(-969)
-        # y < 0
-        isless(y, zero(y)) ? prevfloat(x) : x
+    if isfinite(x)
+        if abs(x) >= 2.0^(-969)
+            isless(y, zero(y)) ? prevfloat(x) : x
+        else
+            mult = 2.0^537
+            s, s2 = twoprod(a * mult, b * mult)
+            t = (x * mult) * mult 
+            t > s || (t == s && s2 < 0) ? prevfloat(x) : x
+        end
     else
-        mult = 2.0^537
-        s, s2 = twoprod(a * mult, b * mult)
-        t = (x * mult) * mult 
-        t > s || (t == s && s2 < 0) ? prevfloat(x) : x
+        x == Inf && isfinite(a) && isfinite(b) ? floatmax(x) : x
     end
 end
 
