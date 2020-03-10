@@ -16,7 +16,13 @@ using Test
                     if calc == raw
                         return true
                     else
-                        throw(@sprintf("%.23f, %.23f", ai, bi))
+                        @info("Rounding error:")
+                        @info(@sprintf("a = %0.20e, bit rep : %s", ai, bitstring(ai)))
+                        @info(@sprintf("b = %0.20e, bit rep : %s", bi, bitstring(bi)))
+
+                        @info(@sprintf("calc = %0.20e, bit rep : %s", calc, bitstring(calc)))
+                        @info(@sprintf("raw = %0.20e, bit rep : %s", raw, bitstring(raw)))
+                        return false
                     end
                 end
 
