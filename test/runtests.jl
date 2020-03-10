@@ -45,7 +45,7 @@ function rounding_check(a, b)
 end
 
 @testset "setrounding_raw" begin
-    N = 10 # enough?
+    N = 10^5 # enough?
     a, b = randn(N), randn(N)
 
     special_values = [

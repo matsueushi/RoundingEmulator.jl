@@ -25,7 +25,7 @@ end
 function add_up(a, b)
     x, y = twosum(a, b)
     if isfinite(x)
-        isless(zero(y), y) ? nextfloat(x) : x
+        y > zero(y) ? nextfloat(x) : x
     else
         x == -Inf && isfinite(a) && isfinite(b) ? -floatmax(x) : x
     end
@@ -34,7 +34,18 @@ end
 function add_down(a, b)
     x, y = twosum(a, b)
     if isfinite(x)
-        isless(y, zero(y)) ? prevfloat(x) : x
+        if y < zero(y)
+            prevfloat(x)
+        else
+            # y = 0 -> x = a + b
+            # 1) x ≂̸ 0 => x
+            # 2) x = 0, a = -b ≂̸ 0 => -0.0
+            # 3) x = 0, a = b = 0
+            #    (a, b) = (0.0, 0.0) => 0.0
+            #    (a, b) = (-0.0, 0.0) => -0.0
+            #    (a, b) = (-0.0, -0.0) => -0.0
+            x == 0 && (signbit(a) || signbit(b)) ? -zero(x) : x
+        end
     else
         x == Inf && isfinite(a) && isfinite(b) ? floatmax(x) : x
     end
@@ -45,7 +56,7 @@ function mul_up(a, b)
     x, y = twoprod(a, b)
     if isfinite(x)
         if abs(x) > zero(x) # 2.0^-969 ?
-            isless(zero(y), y) ? nextfloat(x) : x
+            y > zero(y) ? nextfloat(x) : x
         else
             mult = 2.0^537
             s, s2 = twoprod(a * mult, b * mult)
@@ -62,7 +73,7 @@ function mul_down(a, b)
     x, y = twoprod(a, b)
     if isfinite(x)
         if abs(x) > zero(x) # 2.0^-969 ?
-            isless(y, zero(y)) ? prevfloat(x) : x
+            y < zero(y) ? prevfloat(x) : x
         else
             mult = 2.0^537
             s, s2 = twoprod(a * mult, b * mult)
