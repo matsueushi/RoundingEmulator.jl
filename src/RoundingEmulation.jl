@@ -56,7 +56,7 @@ function mul_up(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) > zero(x) # 2.0^-969 ?
+        if abs(x) > 2.0^-969  # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
             y > zero(y) ? nextfloat(x) : x
         else
             mult = 2.0^537
@@ -76,7 +76,7 @@ function mul_down(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) > zero(x) # 2.0^-969 ?
+        if abs(x) > 2.0^-969 # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
             y < zero(y) ? prevfloat(x) : x
         else
             mult = 2.0^537

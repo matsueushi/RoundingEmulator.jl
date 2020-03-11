@@ -4,16 +4,28 @@ import Base.Rounding
 using Printf
 using Test
 
+function special_value_list(T::Type)
+    return [
+        zero(T), -zero(T), one(T), -one(T),
+        nextfloat(zero(T)), prevfloat(zero(T)),
+        floatmin(T), -floatmin(T),
+        eps(T), -eps(T),
+        floatmax(T), -floatmax(T),
+        -T(Inf), T(Inf),
+    ]
+
+end
+
 function check_op(op, updown, ai, bi, calc, raw)
     if isequal(calc, raw) # -0.0 is equal to 0.0 ?
         return true
     else
         @info("Erorr", op, updown)
-        @info(@sprintf("a = %0.20e, bit rep : %s", ai, bitstring(ai)))
-        @info(@sprintf("b = %0.20e, bit rep : %s", bi, bitstring(bi)))
+        @info(@sprintf("a = %0.18e, bit rep : %s", ai, bitstring(ai)))
+        @info(@sprintf("b = %0.18e, bit rep : %s", bi, bitstring(bi)))
 
-        @info(@sprintf("calc = %0.20e, bit rep : %s", calc, bitstring(calc)))
-        @info(@sprintf("raw = %0.20e, bit rep : %s", raw, bitstring(raw)))
+        @info(@sprintf("calc = %0.18e, bit rep : %s", calc, bitstring(calc)))
+        @info(@sprintf("raw = %0.18e, bit rep : %s", raw, bitstring(raw)))
         return false
     end
 end
@@ -44,30 +56,12 @@ function rounding_check(a, b)
     end
 end
 
-@testset "setrounding_raw" begin
-    N = 10^5 # enough?
-    a, b = randn(N), randn(N)
-
-    special_values = [
-        0.0, -0.0, 1.0, -1.0,
-        nextfloat(zero(Float64)), prevfloat(zero(Float64)),
-        floatmin(Float64), -floatmin(Float64),
-        eps(Float64), -eps(Float64),
-        floatmax(Float64), -floatmax(Float64),
-        -Inf, Inf,
-        ]
-
-    @testset "randn" begin
-        rounding_check(a, b)
-        rounding_check(b, a)
-    end
-
-    @testset "special cases" begin
-        len = Base.length(special_values)
-        a = repeat(special_values, len)
-        b = sort(a)
-        rounding_check(a, b)
-    end
+@testset "Special Cases" begin
+    special_values = special_value_list(Float64)
+    len = Base.length(special_values)
+    a = repeat(special_values, len)
+    b = sort(a)
+    rounding_check(a, b)
 end
 
 @testset "Overflow, Underflow" begin
@@ -75,13 +69,24 @@ end
     a = [
         3.5630624444874539e+307, # twosum overflow
         6.929001713869936e+236, # twoprod overflow
-        2.0^-600, # twoprod underflow
+        -2.1634867667116802e-200, # mul_up
+        6.640350825165134e-116, # mul_down
     ]
     b = [
         -1.7976931348623157e+308,
         2.5944475251952003e+71,
-        2.0^-400
+        1.6930929484402486e-119,
+        -1.1053488936824272e-202,
     ]
     rounding_check(a, b)
     rounding_check(b, a)
+end
+
+const N = 10^5 # enough?
+const rand_a = reinterpret.(Float64, rand(Int64, N))
+const rand_b = reinterpret.(Float64, rand(Int64, N))
+
+@testset "Random Sampling" begin
+    rounding_check(rand_a, rand_b)
+    rounding_check(rand_b, rand_a)
 end
