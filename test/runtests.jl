@@ -4,17 +4,15 @@ import Base.Rounding
 using Printf
 using Test
 
-function special_value_list(T::Type)
-    return [
-        zero(T), -zero(T), one(T), -one(T),
-        nextfloat(zero(T)), prevfloat(zero(T)),
-        floatmin(T), -floatmin(T),
-        eps(T), -eps(T),
-        floatmax(T), -floatmax(T),
-        -T(Inf), T(Inf),
-    ]
-
-end
+special_value_list(T::Type) = [
+    zero(T), -zero(T), 
+    one(T), -one(T),
+    nextfloat(zero(T)), prevfloat(zero(T)),
+    eps(T), -eps(T),
+    floatmin(T), -floatmin(T),
+    floatmax(T), -floatmax(T),
+    typemax(T), typemin(T),
+]
 
 function check_op(op, updown, ai, bi, calc, raw)
     if isequal(calc, raw) # -0.0 is equal to 0.0 ?
