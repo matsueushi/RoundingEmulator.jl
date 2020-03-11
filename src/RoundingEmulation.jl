@@ -14,7 +14,6 @@ function fast_twosum(a, b)
     x, b - tmp
 end
 
-
 twosum(a, b) = abs(a) > abs(b) ? fast_twosum(a, b) : fast_twosum(b, a)
 
 # Product
@@ -59,14 +58,17 @@ sub_up(a, b) = add_up(a, -b)
 sub_down(a, b) = add_down(a, -b)
 
 # Mul
+const_mul_th1(x) = oftype(x, 2)^-969
+const_mul_th2(x) = oftype(x, 2)^537
+
 function mul_up(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) > 2.0^-969  # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
+        if abs(x) > const_mul_th1(x) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
             y > zero(y) ? nextfloat(x) : x
         else
-            mult = 2.0^537
+            mult = const_mul_th2(x)
             s, s2 = twoprod(a * mult, b * mult)
             t = (x * mult) * mult
             t < s || (t == s && s2 > zero(s)) ? nextfloat(x) : x
@@ -80,10 +82,11 @@ function mul_down(a, b)
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) > 2.0^-969 # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
+        th =  const_mul_th1(x) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) failss
+        if abs(x) > th
             y < zero(y) ? prevfloat(x) : x
         else
-            mult = 2.0^537
+            mult = const_mul_th2(x)
             s, s2 = twoprod(a * mult, b * mult)
             t = (x * mult) * mult 
             t > s || (t == s && s2 < zero(s)) ? prevfloat(x) : x
