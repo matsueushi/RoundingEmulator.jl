@@ -25,7 +25,7 @@ function fast_twosum(a, b)
     x, b - tmp
 end
 
-twosum(a, b) = abs(a) > abs(b) ? fast_twosum(a, b) : fast_twosum(b, a)
+twosum(a, b) = ifelse(abs(a) > abs(b), fast_twosum(a, b), fast_twosum(b, a))
 
 # Product
 function twoprod(a, b)
@@ -41,7 +41,7 @@ function add_up(a::T, b::T) where T <:Union{Float32, Float64}
     if isfinite(x)
         y > zero(T) ? nextfloat(x) : x
     else
-        x == typemin(T) && isfinite(a) && isfinite(b) ? -floatmax(T) : x
+        ifelse(x == typemin(T) && isfinite(a) && isfinite(b), -floatmax(T), x)
     end
 end
 
@@ -58,10 +58,10 @@ function add_down(a::T, b::T) where T <:Union{Float32, Float64}
             #    (a, b) = (0.0, 0.0) => 0.0
             #    (a, b) = (-0.0, 0.0) => -0.0
             #    (a, b) = (-0.0, -0.0) => -0.0
-            x == zero(T) && (signbit(a) || signbit(b)) ? -zero(T) : x
+            ifelse(x == zero(T) && (signbit(a) || signbit(b)), -zero(T), x)
         end
     else
-        x == typemax(T) && isfinite(a) && isfinite(b) ? floatmax(T) : x
+        ifelse(x == typemax(T) && isfinite(a) && isfinite(b), floatmax(T), x)
     end
 end
 
@@ -92,7 +92,7 @@ function mul_up(a::T, b::T) where T <:Union{Float32, Float64}
             t < s || (t == s && s2 > zero(T)) ? nextfloat(x) : x
         end
     else
-        x == typemin(T) && isfinite(a) && isfinite(b) ? -floatmax(T) : x
+        ifelse(x == typemin(T) && isfinite(a) && isfinite(b), -floatmax(T), x)
     end
 end
 
@@ -109,7 +109,7 @@ function mul_down(a::T, b::T) where T <:Union{Float32, Float64}
             t > s || (t == s && s2 < zero(T)) ? prevfloat(x) : x
         end
     else
-        x == typemax(T) && isfinite(a) && isfinite(b) ? floatmax(T) : x
+        ifelse(x == typemax(T) && isfinite(a) && isfinite(b), floatmax(T), x)
     end
 end
 
