@@ -100,7 +100,7 @@ function mul_down(a::T, b::T) where T <:Union{Float32, Float64}
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) >  _mul_th1(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
+        if abs(x) > _mul_th1(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
             y < zero(T) ? prevfloat(x) : x
         else
             mult = _mul_th2(T)

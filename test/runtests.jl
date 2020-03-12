@@ -55,14 +55,19 @@ function rounding_check(a, b)
 end
 
 @testset "Special Cases" begin
-    special_values = special_value_list(Float64)
-    len = Base.length(special_values)
-    a = repeat(special_values, len)
-    b = sort(a)
-    rounding_check(a, b)
+    for T in (Float64,) # TODO Float32
+        special_values = special_value_list(T)
+        len = Base.length(special_values)
+        a = repeat(special_values, len)
+        b = sort(a)
+        rounding_check(a, b)
+    end
 end
 
 @testset "Overflow, Underflow" begin
+    # TODO
+    # Add counterexamples for Float32
+
     # http://verifiedby.me/adiary/09
     a = [
         3.5630624444874539e+307, # twosum overflow
@@ -80,11 +85,12 @@ end
     rounding_check(b, a)
 end
 
-const N = 10^5 # enough?
-const rand_a = reinterpret.(Float64, rand(Int64, N))
-const rand_b = reinterpret.(Float64, rand(Int64, N))
-
 @testset "Random Sampling" begin
-    rounding_check(rand_a, rand_b)
-    rounding_check(rand_b, rand_a)
+    N = 10^5 # enough?
+    for (Tf, Ti) in ((Float64, Int64),) # TODO (Float32, Int32)
+        rand_a = reinterpret.(Tf, rand(Ti, N))
+        rand_b = reinterpret.(Tf, rand(Ti, N))
+        rounding_check(rand_a, rand_b)
+        rounding_check(rand_b, rand_a)
+    end
 end
