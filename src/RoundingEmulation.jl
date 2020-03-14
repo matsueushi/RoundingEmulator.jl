@@ -14,8 +14,12 @@ else
     for T in (Float32, Float64)
         @eval exponent_bias(::Type{$T}) = $(Int(Base.exponent_one(T) >> Base.significand_bits(T)))
         @eval exponent_max(::Type{$T}) = $(Int(Base.exponent_mask(T) >> Base.significand_bits(T)) - exponent_bias(T))
-        @eval log2u(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
     end
+end
+
+
+for T in (Float32, Float64)
+    @eval log2u(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
 end
 
 # Sum
