@@ -15,7 +15,7 @@ special_value_list(T::Type) = [
 ]
 
 function check_op(op, updown, ai, bi, calc, raw)
-    if isequal(calc, raw) # -0.0 is equal to 0.0 ?
+    if isequal(calc, raw)
         return true
     else
         @info("Erorr", op, updown)
@@ -29,16 +29,17 @@ function check_op(op, updown, ai, bi, calc, raw)
 end
 
 function rounding_check(a, b)
+    elt = eltype(a)
     for (op, base_op) in zip(("add", "mul", "sub"), (:+, :*, :-))
         @eval begin
-            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
+            Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundNearest))
             $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
             $(Symbol(op, "_down_calc")) = $(Symbol(op, "_down")).($a, $b)
 
-            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundUp))
+            Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundUp))
             $(Symbol(op, "_up_raw")) = broadcast($base_op, $a, $b)
 
-            Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundDown))
+            Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundDown))
             $(Symbol(op, "_down_raw")) = broadcast($base_op, $a, $b)
 
             # Compare
@@ -50,7 +51,7 @@ function rounding_check(a, b)
                 @test check_op($op, "down", ai, bi, down_calc, down_raw)
             end
         end
-        Rounding.setrounding_raw(Float64, Rounding.to_fenv(RoundNearest))
+        Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
     end
 end
 
@@ -85,12 +86,12 @@ end
     rounding_check(b, a)
 end
 
-for (Tf, Ti) in ((Float64, Int64), (Float32, Int32))
-    @testset "$(Tf), Random Sampling" begin
+for T in (Float64, Float32)
+    @testset "$(T), Random Sampling" begin
         N = 10^5 # enough?
-            rand_a = reinterpret.(Tf, rand(Ti, N))
-            rand_b = reinterpret.(Tf, rand(Ti, N))
-            rounding_check(rand_a, rand_b)
-            rounding_check(rand_b, rand_a)
+        rand_a = reinterpret.(T, rand(Base.uinttype(T), N))
+        rand_b = reinterpret.(T, rand(Base.uinttype(T), N))
+        rounding_check(rand_a, rand_b)
+        rounding_check(rand_b, rand_a)
     end
 end
