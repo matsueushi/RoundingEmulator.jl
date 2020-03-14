@@ -14,9 +14,3 @@ end
 for T in (Float32, Float64)
     @eval log2u(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
 end
-
-# Product
-function twoprod(a, b)
-    x = a * b
-    x, fma(a, b, -x)
-end
