@@ -1,6 +1,6 @@
 module RoundingEmulation
 
-export twosum, add_up, add_down
+export add_up, add_down
 export sub_up, sub_down
 export twoprod, mul_up, mul_down
 

@@ -1,6 +1,6 @@
 # Add
-function add_up(a::T, b::T) where T <:Union{Float32, Float64}
-    x, y = twosum(a, b)
+function add_up(a::T, b::T) where T<:FloatTypes
+    x, y = Base.add12(a, b) # twosum
     if isfinite(x)
         y > zero(T) ? nextfloat(x) : x
     else
@@ -8,8 +8,8 @@ function add_up(a::T, b::T) where T <:Union{Float32, Float64}
     end
 end
 
-function add_down(a::T, b::T) where T <:Union{Float32, Float64}
-    x, y = twosum(a, b)
+function add_down(a::T, b::T) where T<:FloatTypes
+    x, y = Base.add12(a, b) # twosum
     if isfinite(x)
         if y < zero(T)
             prevfloat(x)
@@ -29,8 +29,8 @@ function add_down(a::T, b::T) where T <:Union{Float32, Float64}
 end
 
 # Sub
-sub_up(a::T, b::T) where T <:Union{Float32, Float64} = add_up(a, -b)
-sub_down(a::T, b::T) where T <:Union{Float32, Float64} = add_down(a, -b)
+sub_up(a::T, b::T) where T<:FloatTypes = add_up(a, -b)
+sub_down(a::T, b::T) where T<:FloatTypes = add_down(a, -b)
 
 # Mul
 # const
@@ -40,7 +40,7 @@ for T in (Float32, Float64)
     @eval c_m2(::Type{$T}) = $(exp2(T(ceil(Int, -log2u(T)//2))))
 end
 
-function mul_up(a::T, b::T) where T <:Union{Float32, Float64} 
+function mul_up(a::T, b::T) where T<:FloatTypes
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
@@ -57,7 +57,7 @@ function mul_up(a::T, b::T) where T <:Union{Float32, Float64}
     end
 end
 
-function mul_down(a::T, b::T) where T <:Union{Float32, Float64} 
+function mul_down(a::T, b::T) where T<:FloatTypes
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
@@ -73,3 +73,5 @@ function mul_down(a::T, b::T) where T <:Union{Float32, Float64}
         ifelse(x == typemax(T) && isfinite(a) && isfinite(b), floatmax(T), x)
     end
 end
+
+# Div
