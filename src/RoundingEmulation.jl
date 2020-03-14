@@ -14,6 +14,7 @@ else
     for T in (Float32, Float64)
         @eval exponent_bias(::Type{$T}) = $(Int(Base.exponent_one(T) >> Base.significand_bits(T)))
         @eval exponent_max(::Type{$T}) = $(Int(Base.exponent_mask(T) >> Base.significand_bits(T)) - exponent_bias(T))
+        @eval log2u(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
     end
 end
 
@@ -72,21 +73,19 @@ sub_down(a::T, b::T) where T <:Union{Float32, Float64} = add_down(a, -b)
 # Mul
 # const
 for T in (Float32, Float64)
-    # (minimal exponent) - (significand bits) + 2 * (significand bits) - 1 ?
-    @eval _mul_th1_exponent(::Type{$T}) = $((2 -exponent_max(T)) + (Base.significand_bits(T) + 2) - 1)
-    @eval _mul_th1(::Type{$T}) = $(ldexp(one(T), _mul_th1_exponent(T)))
-    @eval _mul_th2_exponent(::Type{$T}) = $(-1 + (exponent_max(T) + Base.significand_bits(T)) ÷ 2)
-    @eval _mul_th2(::Type{$T}) = $(ldexp(one(T), _mul_th2_exponent(T)))
+    # http://verifiedby.me/adiary/09
+    @eval c_m1(::Type{$T}) = $(exp2(T(log2u(T) + 2 * precision(T) + 1)))
+    @eval c_m2(::Type{$T}) = $(exp2(T(ceil(Int, -log2u(T)//2))))
 end
 
 function mul_up(a::T, b::T) where T <:Union{Float32, Float64} 
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) > _mul_th1(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
+        if abs(x) > c_m1(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
             y > zero(T) ? nextfloat(x) : x
         else
-            mult = _mul_th2(T)
+            mult = c_m2(T)
             s, s2 = twoprod(a * mult, b * mult)
             t = (x * mult) * mult
             t < s || (t == s && s2 > zero(T)) ? nextfloat(x) : x
@@ -100,10 +99,10 @@ function mul_down(a::T, b::T) where T <:Union{Float32, Float64}
     # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
     x, y = twoprod(a, b)
     if isfinite(x)
-        if abs(x) > _mul_th1(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
+        if abs(x) > c_m1(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
             y < zero(T) ? prevfloat(x) : x
         else
-            mult = _mul_th2(T)
+            mult = c_m2(T)
             s, s2 = twoprod(a * mult, b * mult)
             t = (x * mult) * mult 
             t > s || (t == s && s2 < zero(T)) ? prevfloat(x) : x

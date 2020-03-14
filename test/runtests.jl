@@ -54,8 +54,8 @@ function rounding_check(a, b)
     end
 end
 
-@testset "Special Cases" begin
-    for T in (Float64,) # TODO Float32
+for T in (Float64, Float32)
+    @testset "$(T), Special Cases" begin
         special_values = special_value_list(T)
         len = Base.length(special_values)
         a = repeat(special_values, len)
@@ -85,12 +85,12 @@ end
     rounding_check(b, a)
 end
 
-@testset "Random Sampling" begin
-    N = 10^5 # enough?
-    for (Tf, Ti) in ((Float64, Int64),) # TODO (Float32, Int32)
-        rand_a = reinterpret.(Tf, rand(Ti, N))
-        rand_b = reinterpret.(Tf, rand(Ti, N))
-        rounding_check(rand_a, rand_b)
-        rounding_check(rand_b, rand_a)
+for (Tf, Ti) in ((Float64, Int64), (Float32, Int32))
+    @testset "$(Tf), Random Sampling" begin
+        N = 10^5 # enough?
+            rand_a = reinterpret.(Tf, rand(Ti, N))
+            rand_b = reinterpret.(Tf, rand(Ti, N))
+            rounding_check(rand_a, rand_b)
+            rounding_check(rand_b, rand_a)
     end
 end
