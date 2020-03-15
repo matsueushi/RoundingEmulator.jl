@@ -1,7 +1,7 @@
 using Base.Math: ldexp
 
 # Add
-function add_up(a::T, b::T) where T<:FloatTypes
+function add_up(a::T, b::T) where {T<:FloatTypes}
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
@@ -19,7 +19,7 @@ end
 #    (a, b) = (0.0, 0.0) => 0.0
 #    (a, b) = (-0.0, 0.0) => -0.0
 #    (a, b) = (-0.0, -0.0) => -0.0
-function add_down(a::T, b::T) where T<:FloatTypes
+function add_down(a::T, b::T) where {T<:FloatTypes}
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
@@ -31,8 +31,8 @@ function add_down(a::T, b::T) where T<:FloatTypes
 end
 
 # Sub
-sub_up(a::T, b::T) where T<:FloatTypes = add_up(a, -b)
-sub_down(a::T, b::T) where T<:FloatTypes = add_down(a, -b)
+sub_up(a::T, b::T) where {T<:FloatTypes} = add_up(a, -b)
+sub_down(a::T, b::T) where {T<:FloatTypes} = add_down(a, -b)
 
 # const
 for T in (Float32, Float64)
@@ -48,7 +48,7 @@ end
 # Mul
 # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
 
-function mul_up(a::T, b::T) where T<:FloatTypes
+function mul_up(a::T, b::T) where {T<:FloatTypes}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
@@ -62,7 +62,7 @@ function mul_up(a::T, b::T) where T<:FloatTypes
     end
 end
 
-function mul_down(a::T, b::T) where T<:FloatTypes
+function mul_down(a::T, b::T) where {T<:FloatTypes}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
@@ -77,7 +77,7 @@ function mul_down(a::T, b::T) where T<:FloatTypes
 end
 
 # Div
-function div_up(a::T, b::T) where T<:FloatTypes
+function div_up(a::T, b::T) where {T<:FloatTypes}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
     else
@@ -98,7 +98,7 @@ function div_up(a::T, b::T) where T<:FloatTypes
     end
 end
 
-function div_down(a::T, b::T) where T<:FloatTypes
+function div_down(a::T, b::T) where {T<:FloatTypes}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
     else

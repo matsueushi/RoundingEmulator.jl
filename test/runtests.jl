@@ -83,12 +83,14 @@ end
     rounding_check(b, a)
 end
 
-for T in (Float64, Float32)
-    @testset "$(T), Random Sampling" begin
-        N = 10^5 # enough?
-        rand_a = reinterpret.(T, rand(Base.uinttype(T), N))
-        rand_b = reinterpret.(T, rand(Base.uinttype(T), N))
-        rounding_check(rand_a, rand_b)
-        rounding_check(rand_b, rand_a)
+for n in 3:10
+    for T in (Float64, Float32)
+        @testset "$(T), Random Sampling, 10^$(n)" begin
+            N = 10^n
+            rand_a = reinterpret.(T, rand(Base.uinttype(T), N))
+            rand_b = reinterpret.(T, rand(Base.uinttype(T), N))
+            rounding_check(rand_a, rand_b)
+            rounding_check(rand_b, rand_a)
+        end
     end
 end
