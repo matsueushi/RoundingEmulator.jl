@@ -4,9 +4,9 @@ using Base.Math: ldexp
 function add_up(a::T, b::T) where T<:FloatTypes
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
-        ifelse(x == typemin(T) && isfinite(a) && isfinite(b), -floatmax(T), x)
+        ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
     else
-        y > zero(T) ? nextfloat(x) : x
+        y > zero(y) ? nextfloat(x) : x
     end
 end
 
@@ -22,11 +22,11 @@ end
 function add_down(a::T, b::T) where T<:FloatTypes
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
-        ifelse(x == typemax(T) && isfinite(a) && isfinite(b), floatmax(T), x)
-    elseif y < zero(T)
+        ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
+    elseif y < zero(y)
         prevfloat(x)
     else
-        ifelse(x == zero(T) && (signbit(a) || signbit(b)), -zero(T), x)
+        ifelse(x == zero(x) && (signbit(a) || signbit(b)), -zero(x), x)
     end
 end
 
@@ -51,28 +51,28 @@ end
 function mul_up(a::T, b::T) where T<:FloatTypes
     x, y = Base.mul12(a, b)
     if isinf(x)
-        ifelse(x == typemin(T) && isfinite(a) && isfinite(b), -floatmax(T), x)
+        ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
     elseif abs(x) > c_1(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
-        y > zero(T) ? nextfloat(x) : x
+        y > zero(y) ? nextfloat(x) : x
     else
         mult = c_2(T)
         s, s2 = Base.mul12(a * mult, b * mult)
         t = (x * mult) * mult
-        t < s || (t == s && s2 > zero(T)) ? nextfloat(x) : x
+        t < s || (t == s && s2 > zero(s2)) ? nextfloat(x) : x
     end
 end
 
 function mul_down(a::T, b::T) where T<:FloatTypes
     x, y = Base.mul12(a, b)
     if isinf(x)
-        ifelse(x == typemax(T) && isfinite(a) && isfinite(b), floatmax(T), x)
+        ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
     elseif abs(x) > c_1(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
-        y < zero(T) ? prevfloat(x) : x
+        y < zero(y) ? prevfloat(x) : x
     else
         mult = c_2(T)
         s, s2 = Base.mul12(a * mult, b * mult)
         t = (x * mult) * mult 
-        t > s || (t == s && s2 < zero(T)) ? prevfloat(x) : x
+        t > s || (t == s && s2 < zero(s2)) ? prevfloat(x) : x
     end
 end
 
@@ -89,12 +89,12 @@ function div_up(a::T, b::T) where T<:FloatTypes
                 a = ldexp(a, e_1(T))
                 b = ldexp(b, e_1(T))
             else
-                a < zero(T) ? zero(T) : nextfloat(zero(T))
+                a < zero(a) ? zero(a) : nextfloat(zero(a))
             end
         end
         d = a / b
         x, y = Base.mul12(d, b)
-        x < a || (x == a && y < zero(T)) ? nextfloat(d) : d
+        x < a || (x == a && y < zero(y)) ? nextfloat(d) : d
     end
 end
 
@@ -110,12 +110,12 @@ function div_down(a::T, b::T) where T<:FloatTypes
                 a = ldexp(a, e_1(T))
                 b = ldexp(b, e_1(T))
             else
-                a < zero(T) ? prevfloat(zero(T)) : zero(T)
+                a < zero(a) ? prevfloat(zero(a)) : zero(a)
             end
         end
         d = a / b
         x, y = Base.mul12(d, b)
-        x > a || (x == a && y > zero(T)) ? prevfloat(d) : d
+        x > a || (x == a && y > zero(y)) ? prevfloat(d) : d
     end
 end
 
