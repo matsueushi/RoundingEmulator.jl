@@ -37,12 +37,8 @@ sub_down(a::T, b::T) where {T<:FloatTypes} = add_down(a, -b)
 # const
 for T in (Float32, Float64)
     # http://verifiedby.me/adiary/09
-    @eval c_1(::Type{$T}) = $(ldexp(one(T), log2u(T) + 2 * precision(T) + 1))
-    @eval c_2(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2u(T)//2)))
-    @eval c_3(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * precision(T) + 3))
-    @eval e_1(::Type{$T}) = $(2 * precision(T) - 1)
-    @eval c_5(::Type{$T}) = $(ldexp(one(T), 2 * precision(T)))
-    @eval c_6(::Type{$T}) = $(ldexp(one(T), precision(T)))
+    @eval abs_th(::Type{$T}) = $(ldexp(one(T), log2u(T) + 2 * precision(T) + 1))
+    @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2u(T)//2)))
 end
 
 # Mul
@@ -52,10 +48,10 @@ function mul_up(a::T, b::T) where {T<:FloatTypes}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
-    elseif abs(x) > c_1(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
+    elseif abs(x) > abs_th(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
         y > zero(y) ? nextfloat(x) : x
     else
-        mult = c_2(T)
+        mult = mult_mul(T)
         s, s2 = Base.mul12(a * mult, b * mult)
         t = (x * mult) * mult
         t < s || (t == s && s2 > zero(s2)) ? nextfloat(x) : x
@@ -66,10 +62,10 @@ function mul_down(a::T, b::T) where {T<:FloatTypes}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
-    elseif abs(x) > c_1(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
+    elseif abs(x) > abs_th(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
         y < zero(y) ? prevfloat(x) : x
     else
-        mult = c_2(T)
+        mult = mult_mul(T)
         s, s2 = Base.mul12(a * mult, b * mult)
         t = (x * mult) * mult 
         t > s || (t == s && s2 < zero(s2)) ? prevfloat(x) : x
@@ -77,6 +73,11 @@ function mul_down(a::T, b::T) where {T<:FloatTypes}
 end
 
 # Div
+for T in (Float32, Float64)
+    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * precision(T) + 3))
+    @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
+end
+
 function div_up(a::T, b::T) where {T<:FloatTypes}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
@@ -84,10 +85,10 @@ function div_up(a::T, b::T) where {T<:FloatTypes}
         # if b < 0, flip sign of a and b
         a = flipsign(a, b)
         b = abs(b)
-        if abs(a) < c_1(T)
-            if abs(b) < c_3(T)
-                a = ldexp(a, e_1(T))
-                b = ldexp(b, e_1(T))
+        if abs(a) < abs_th(T)
+            if abs(b) < abs_th_div(T)
+                a = ldexp(a, e_div(T))
+                b = ldexp(b, e_div(T))
             else
                 a < zero(a) ? zero(a) : nextfloat(zero(a))
             end
@@ -105,10 +106,10 @@ function div_down(a::T, b::T) where {T<:FloatTypes}
         # if b < 0, flip sign of a and b
         a = flipsign(a, b)
         b = abs(b)
-        if abs(a) < c_1(T)
-            if abs(b) < c_3(T)
-                a = ldexp(a, e_1(T))
-                b = ldexp(b, e_1(T))
+        if abs(a) < abs_th(T)
+            if abs(b) < abs_th_div(T)
+                a = ldexp(a, e_div(T))
+                b = ldexp(b, e_div(T))
             else
                 a < zero(a) ? prevfloat(zero(a)) : zero(a)
             end
@@ -121,9 +122,9 @@ end
 
 # Sqrt
 function sqrt_up(a::FloatTypes)
-    sqrt(a)
+    d = sqrt(a)
 end
 
 function sqrt_down(a::FloatTypes)
-    sqrt(a)
+    d = sqrt(a)
 end
