@@ -34,14 +34,17 @@ end
 sub_up(a::T, b::T) where T<:FloatTypes = add_up(a, -b)
 sub_down(a::T, b::T) where T<:FloatTypes = add_down(a, -b)
 
-# Mul
-# http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
 # const
 for T in (Float32, Float64)
     # http://verifiedby.me/adiary/09
     @eval c_1(::Type{$T}) = $(ldexp(one(T), log2u(T) + 2 * precision(T) + 1))
     @eval c_2(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2u(T)//2)))
+    @eval c_3(::Type{$T}) = $(ldexp(one(T), 2 * precision(T) - 1))
+    @eval c_4(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * precision(T) + 3))
 end
+
+# Mul
+# http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
 
 function mul_up(a::T, b::T) where T<:FloatTypes
     x, y = Base.mul12(a, b)
@@ -81,6 +84,14 @@ function div_up(a::T, b::T) where T<:FloatTypes
             a *= -1
             b *= -1
         end
+        if abs(a) < c_1(T)
+            if abs(b) < c_4(T)
+                a *= c_3(T)
+                b *= c_3(T)
+            else
+                a < zero(T) ? zero(T) : nextfloat(zero(T))
+            end
+        end
         d = a / b
         x, y = Base.mul12(d, b)
         x < a || (x == a && y < zero(T)) ? nextfloat(d) : d
@@ -94,6 +105,14 @@ function div_down(a::T, b::T) where T<:FloatTypes
         if b < zero(T)
             a *= -1
             b *= -1
+        end
+        if abs(a) < c_1(T)
+            if abs(b) < c_4(T)
+                a *= c_3(T)
+                b *= c_3(T)
+            else
+                a < zero(T) ? prevfloat(zero(T)) : zero(T)
+            end
         end
         d = a / b
         x, y = Base.mul12(d, b)
