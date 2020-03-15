@@ -12,6 +12,7 @@ special_value_list(T::Type) = [
     floatmin(T), -floatmin(T),
     floatmax(T), -floatmax(T),
     typemax(T), typemin(T),
+    T(NaN)
 ]
 
 function check_op(op, updown, ai, bi, calc, raw)

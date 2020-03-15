@@ -39,8 +39,10 @@ for T in (Float32, Float64)
     # http://verifiedby.me/adiary/09
     @eval c_1(::Type{$T}) = $(ldexp(one(T), log2u(T) + 2 * precision(T) + 1))
     @eval c_2(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2u(T)//2)))
-    @eval c_3(::Type{$T}) = $(ldexp(one(T), 2 * precision(T) - 1))
-    @eval c_4(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * precision(T) + 3))
+    @eval c_3(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * precision(T) + 3))
+    @eval e_1(::Type{$T}) = $(2 * precision(T) - 1)
+    @eval c_5(::Type{$T}) = $(ldexp(one(T), 2 * precision(T)))
+    @eval c_6(::Type{$T}) = $(ldexp(one(T), precision(T)))
 end
 
 # Mul
@@ -74,20 +76,18 @@ function mul_down(a::T, b::T) where T<:FloatTypes
     end
 end
 
-
 # Div
 function div_up(a::T, b::T) where T<:FloatTypes
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
     else
-        if b < zero(T)
-            a *= -1
-            b *= -1
-        end
+        # if b < 0, flip sign of a and b
+        a = flipsign(a, b)
+        b = abs(b)
         if abs(a) < c_1(T)
-            if abs(b) < c_4(T)
-                a *= c_3(T)
-                b *= c_3(T)
+            if abs(b) < c_3(T)
+                a = ldexp(a, e_1(T))
+                b = ldexp(b, e_1(T))
             else
                 a < zero(T) ? zero(T) : nextfloat(zero(T))
             end
@@ -102,14 +102,13 @@ function div_down(a::T, b::T) where T<:FloatTypes
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
     else
-        if b < zero(T)
-            a *= -1
-            b *= -1
-        end
+        # if b < 0, flip sign of a and b
+        a = flipsign(a, b)
+        b = abs(b)
         if abs(a) < c_1(T)
-            if abs(b) < c_4(T)
-                a *= c_3(T)
-                b *= c_3(T)
+            if abs(b) < c_3(T)
+                a = ldexp(a, e_1(T))
+                b = ldexp(b, e_1(T))
             else
                 a < zero(T) ? prevfloat(zero(T)) : zero(T)
             end
@@ -118,4 +117,13 @@ function div_down(a::T, b::T) where T<:FloatTypes
         x, y = Base.mul12(d, b)
         x > a || (x == a && y > zero(T)) ? prevfloat(d) : d
     end
+end
+
+# Sqrt
+function sqrt_up(a::FloatTypes)
+    sqrt(a)
+end
+
+function sqrt_down(a::FloatTypes)
+    sqrt(a)
 end
