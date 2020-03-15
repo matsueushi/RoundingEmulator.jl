@@ -123,8 +123,20 @@ end
 # Sqrt
 function sqrt_up(a::FloatTypes)
     d = sqrt(a)
+    if isinf(d)
+        typemax(d)
+    else
+        x, y = Base.mul12(d, d)
+        x < a || (x == a  && y < zero(y)) ? nextfloat(d) : d
+    end
 end
 
 function sqrt_down(a::FloatTypes)
     d = sqrt(a)
+    if isinf(d)
+        typemax(d)
+    else
+        x, y = Base.mul12(d, d)
+        x > a || (x == a  && y > zero(y)) ? prevfloat(d) : d
+    end
 end
