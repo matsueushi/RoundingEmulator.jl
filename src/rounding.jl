@@ -89,8 +89,8 @@ function div_up(a::T, b::T) where {T<:FloatTypes}
             if abs(b) < abs_th_div(T)
                 a = ldexp(a, e_div(T))
                 b = ldexp(b, e_div(T))
-            else
-                a < zero(a) ? zero(a) : nextfloat(zero(a))
+            # else
+            #     return a < zero(a) ? zero(a) : nextfloat(zero(a))
             end
         end
         d = a / b
@@ -110,8 +110,8 @@ function div_down(a::T, b::T) where {T<:FloatTypes}
             if abs(b) < abs_th_div(T)
                 a = ldexp(a, e_div(T))
                 b = ldexp(b, e_div(T))
-            else
-                a < zero(a) ? prevfloat(zero(a)) : zero(a)
+            # else
+            #     return a < zero(a) ? prevfloat(zero(a)) : zero(a)
             end
         end
         d = a / b
@@ -126,6 +126,12 @@ function sqrt_up(a::FloatTypes)
     if isinf(d)
         typemax(d)
     else
+        if a < abs_th(typeof(a))
+            a2 = ldexp(a, 2 * precision(a))
+            d2 = ldexp(d, precision(d))
+            x, y = Base.mul12(d2, d2)
+            return x < a2 || (x == a2 && y < zero(y)) ? nextfloat(d) : d
+        end
         x, y = Base.mul12(d, d)
         x < a || (x == a  && y < zero(y)) ? nextfloat(d) : d
     end
@@ -136,6 +142,12 @@ function sqrt_down(a::FloatTypes)
     if isinf(d)
         typemax(d)
     else
+        if a < abs_th(typeof(a))
+            a2 = ldexp(a, 2 * precision(a))
+            d2 = ldexp(d, precision(d))
+            x, y = Base.mul12(d2, d2)
+            return x > a2 || (x == a2 && y > zero(y)) ? prevfloat(d) : d
+        end
         x, y = Base.mul12(d, d)
         x > a || (x == a  && y > zero(y)) ? prevfloat(d) : d
     end
