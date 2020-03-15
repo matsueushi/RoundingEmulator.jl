@@ -16,7 +16,7 @@ special_value_list(T::Type) = [
 
 function check_op(op, updown, ai, bi, calc, raw)
     if isequal(calc, raw)
-        return true
+        true
     else
         @info("Erorr", op, updown)
         @info(@sprintf("a = %0.18e, bit rep : %s", ai, bitstring(ai)))
@@ -24,13 +24,13 @@ function check_op(op, updown, ai, bi, calc, raw)
 
         @info(@sprintf("calc = %0.18e, bit rep : %s", calc, bitstring(calc)))
         @info(@sprintf("raw = %0.18e, bit rep : %s", raw, bitstring(raw)))
-        return false
+        false
     end
 end
 
 function rounding_check(a, b)
     elt = eltype(a)
-    for (op, base_op) in zip(("add", "mul", "sub"), (:+, :*, :-))
+    for (op, base_op) in zip(("add", "sub", "mul", "div"), (:+, :-, :*, :/))
         @eval begin
             Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundNearest))
             $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
@@ -70,18 +70,13 @@ end
     # Add counterexamples for Float32
 
     # http://verifiedby.me/adiary/09
-    a = [
-        3.5630624444874539e+307, # twosum overflow
-        6.929001713869936e+236, # twoprod overflow
-        -2.1634867667116802e-200, # mul_up
-        6.640350825165134e-116, # mul_down
+    ces = [3.5630624444874539e+307  -1.7976931348623157e+308;   # twosum overflow
+           6.929001713869936e+236   2.5944475251952003e+71;     # twoprod overflow
+           -2.1634867667116802e-200 1.6930929484402486e-119;    # mul_up
+           6.640350825165134e-116   -1.1053488936824272e-202;   # mul_down
     ]
-    b = [
-        -1.7976931348623157e+308,
-        2.5944475251952003e+71,
-        1.6930929484402486e-119,
-        -1.1053488936824272e-202,
-    ]
+    a = ces[:, 1]
+    b = ces[:, 2]
     rounding_check(a, b)
     rounding_check(b, a)
 end

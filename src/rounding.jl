@@ -70,3 +70,33 @@ function mul_down(a::T, b::T) where T<:FloatTypes
         t > s || (t == s && s2 < zero(T)) ? prevfloat(x) : x
     end
 end
+
+
+# Div
+function div_up(a::T, b::T) where T<:FloatTypes
+    if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
+        a / b
+    else
+        if b < zero(T)
+            a *= -1
+            b *= -1
+        end
+        d = a / b
+        x, y = Base.mul12(d, b)
+        x < a || (x == a && y < zero(T)) ? nextfloat(d) : d
+    end
+end
+
+function div_down(a::T, b::T) where T<:FloatTypes
+    if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
+        a / b
+    else
+        if b < zero(T)
+            a *= -1
+            b *= -1
+        end
+        d = a / b
+        x, y = Base.mul12(d, b)
+        x > a || (x == a && y > zero(T)) ? prevfloat(d) : d
+    end
+end
