@@ -125,13 +125,12 @@ function sqrt_up(a::FloatTypes)
     d = sqrt(a)
     if isinf(d)
         typemax(d)
+    elseif a < abs_th(typeof(a))
+        a2 = ldexp(a, 2 * precision(a))
+        d2 = ldexp(d, precision(d))
+        x, y = Base.mul12(d2, d2)
+        x < a2 || (x == a2 && y < zero(y)) ? nextfloat(d) : d
     else
-        if a < abs_th(typeof(a))
-            a2 = ldexp(a, 2 * precision(a))
-            d2 = ldexp(d, precision(d))
-            x, y = Base.mul12(d2, d2)
-            return x < a2 || (x == a2 && y < zero(y)) ? nextfloat(d) : d
-        end
         x, y = Base.mul12(d, d)
         x < a || (x == a  && y < zero(y)) ? nextfloat(d) : d
     end
@@ -141,13 +140,12 @@ function sqrt_down(a::FloatTypes)
     d = sqrt(a)
     if isinf(d)
         typemax(d)
+    elseif a < abs_th(typeof(a))
+        a2 = ldexp(a, 2 * precision(a))
+        d2 = ldexp(d, precision(d))
+        x, y = Base.mul12(d2, d2)
+        x > a2 || (x == a2 && y > zero(y)) ? prevfloat(d) : d
     else
-        if a < abs_th(typeof(a))
-            a2 = ldexp(a, 2 * precision(a))
-            d2 = ldexp(d, precision(d))
-            x, y = Base.mul12(d2, d2)
-            return x > a2 || (x == a2 && y > zero(y)) ? prevfloat(d) : d
-        end
         x, y = Base.mul12(d, d)
         x > a || (x == a  && y > zero(y)) ? prevfloat(d) : d
     end
