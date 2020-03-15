@@ -1,3 +1,5 @@
+using Base.Math: ldexp
+
 # Add
 function add_up(a::T, b::T) where T<:FloatTypes
     x, y = Base.add12(a, b) # twosum
@@ -36,8 +38,8 @@ sub_down(a::T, b::T) where T<:FloatTypes = add_down(a, -b)
 # const
 for T in (Float32, Float64)
     # http://verifiedby.me/adiary/09
-    @eval c_m1(::Type{$T}) = $(exp2(T(log2u(T) + 2 * precision(T) + 1)))
-    @eval c_m2(::Type{$T}) = $(exp2(T(ceil(Int, -log2u(T)//2))))
+    @eval c_m1(::Type{$T}) = $(ldexp(one(T), log2u(T) + 2 * precision(T) + 1))
+    @eval c_m2(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2u(T)//2)))
 end
 
 function mul_up(a::T, b::T) where T<:FloatTypes
