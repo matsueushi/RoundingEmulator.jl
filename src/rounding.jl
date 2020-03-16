@@ -1,7 +1,24 @@
 using Base.Math: ldexp
 
+const SysFloat = Union{Float32, Float64}
+
+if VERSION >= v"1.4"
+    using Base: exponent_bias, exponent_max
+else
+    # The following definitions of exponent_bias and exopnent_max are taken from julia, base/float.jl. 
+    # License is MIT: https://julialang.org/license
+    for T in (Float32, Float64)
+        @eval exponent_bias(::Type{$T}) = $(Int(Base.exponent_one(T) >> Base.significand_bits(T)))
+        @eval exponent_max(::Type{$T}) = $(Int(Base.exponent_mask(T) >> Base.significand_bits(T)) - exponent_bias(T))
+    end
+end
+
+for T in (Float32, Float64)
+    @eval log2u(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
+end
+
 # Add
-function add_up(a::T, b::T) where {T<:FloatTypes}
+function add_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
@@ -19,7 +36,7 @@ end
 #    (a, b) = (0.0, 0.0) => 0.0
 #    (a, b) = (-0.0, 0.0) => -0.0
 #    (a, b) = (-0.0, -0.0) => -0.0
-function add_down(a::T, b::T) where {T<:FloatTypes}
+function add_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
@@ -31,8 +48,8 @@ function add_down(a::T, b::T) where {T<:FloatTypes}
 end
 
 # Sub
-sub_up(a::T, b::T) where {T<:FloatTypes} = add_up(a, -b)
-sub_down(a::T, b::T) where {T<:FloatTypes} = add_down(a, -b)
+sub_up(a::T, b::T) where {T<:SysFloat} = add_up(a, -b)
+sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 
 # const
 for T in (Float32, Float64)
@@ -44,7 +61,7 @@ end
 # Mul
 # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
 
-function mul_up(a::T, b::T) where {T<:FloatTypes}
+function mul_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
@@ -58,7 +75,7 @@ function mul_up(a::T, b::T) where {T<:FloatTypes}
     end
 end
 
-function mul_down(a::T, b::T) where {T<:FloatTypes}
+function mul_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
@@ -78,7 +95,7 @@ for T in (Float32, Float64)
     @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
 end
 
-function div_up(a::T, b::T) where {T<:FloatTypes}
+function div_up(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
     else
@@ -99,7 +116,7 @@ function div_up(a::T, b::T) where {T<:FloatTypes}
     end
 end
 
-function div_down(a::T, b::T) where {T<:FloatTypes}
+function div_down(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
     else
@@ -121,7 +138,7 @@ function div_down(a::T, b::T) where {T<:FloatTypes}
 end
 
 # Sqrt
-function sqrt_up(a::FloatTypes)
+function sqrt_up(a::SysFloat)
     d = sqrt(a)
     if isinf(d)
         typemax(d)
@@ -136,7 +153,7 @@ function sqrt_up(a::FloatTypes)
     end
 end
 
-function sqrt_down(a::FloatTypes)
+function sqrt_down(a::SysFloat)
     d = sqrt(a)
     if isinf(d)
         typemax(d)
