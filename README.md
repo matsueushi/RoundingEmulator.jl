@@ -12,7 +12,7 @@ It requires `Base.Rounding.get_zero_subnormals() == true`. (See [Base.Rounding.g
 This package provides
 * add_up, add_down - Addition
 * sub_up, sub_down - Subtraction
-* mul_up, mul_down - Multiprication
+* mul_up, mul_down - Multiplication
 * div_up, div_down - Division
 * sqrt_up, sqrt_down - Square root
 
