@@ -6,10 +6,10 @@ using Test
 
 special_value_list(T::Type) = [
     zero(T), -zero(T), 
-    one(T), -one(T),
     nextfloat(zero(T)), prevfloat(zero(T)),
-    eps(T), -eps(T),
     floatmin(T), -floatmin(T),
+    eps(T), -eps(T),
+    one(T), -one(T),
     floatmax(T), -floatmax(T),
     typemax(T), typemin(T),
     T(NaN)

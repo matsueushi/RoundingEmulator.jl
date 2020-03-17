@@ -4,6 +4,9 @@ Emulate directed rounding using only the default rounding mode.
 
 [![Build Status](https://travis-ci.org/matsueushi/RoundingEmulation.jl.svg?branch=master)](https://travis-ci.org/matsueushi/RoundingEmulation.jl)
 
+This package is meant to produce the exact same results of `Rounding.setrounding` ([deprecated](https://github.com/JuliaLang/julia/pull/27166)) without switching rounding moddes.
+It requires `Base.Rounding.get_zero_subnormals() == true`. (See [Base.Rounding.get_zero_subnormals](https://docs.julialang.org/en/v1/base/numbers/#Base.Rounding.get_zero_subnormals))
+
 ## Use
 
 This package provides
@@ -85,7 +88,16 @@ julia> bitstring(sqrt_down(2.0))
 julia> u = nextfloat(zero(Float64))
 5.0e-324
 
-julia> floatmax(Float64)
+julia> v = floatmax(Float64)
+1.7976931348623157e308
+
+julia> v + v
+Inf
+
+julia> add_up(v, v)
+Inf
+
+julia> add_down(v, v)
 1.7976931348623157e308
 
 julia> u * u
@@ -109,11 +121,20 @@ julia> div_down(1.0, u)
 
 ## Signed zero
 ```julia
+julia> add_up(-1.0, 1.0)
+0.0
+
 julia> add_down(-1.0, 1.0)
 -0.0
 
+julia> add_up(-0.0, 0.0)
+0.0
+
 julia> add_down(-0.0, 0.0)
 -0.0
+
+julia> add_up(0.0, 0.0)
+0.0
 
 julia> add_down(0.0, 0.0)
 0.0

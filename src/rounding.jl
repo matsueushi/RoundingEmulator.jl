@@ -91,7 +91,7 @@ end
 
 # Div
 for T in (Float32, Float64)
-    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * precision(T) + 3))
+    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * Base.significand_bits(T)))
     @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
 end
 
