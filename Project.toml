@@ -1,4 +1,4 @@
-name = "RoundingEmulation"
+name = "RoundingEmulator"
 uuid = "5eaf0fd0-dfba-4ccb-bf02-d820a40db705"
 authors = ["matsueushi <matsueushi@gmail.com>"]
 version = "0.1.0"

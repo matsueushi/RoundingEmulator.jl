@@ -1,8 +1,8 @@
-RoundingEmulation.jl
+RoundingEmulator.jl
 ====================
 Emulate directed rounding using only the default rounding mode. 
 
-[![Build Status](https://travis-ci.org/matsueushi/RoundingEmulation.jl.svg?branch=master)](https://travis-ci.org/matsueushi/RoundingEmulation.jl)
+[![Build Status](https://travis-ci.org/matsueushi/RoundingEmulator.jl.svg?branch=master)](https://travis-ci.org/matsueushi/RoundingEmulator.jl)
 
 This package is meant to produce the exact same results of `Rounding.setrounding` ([deprecated](https://github.com/JuliaLang/julia/pull/27166)) without switching rounding moddes.
 
@@ -23,7 +23,7 @@ This package provides
 `down`: Round down
 
 ```julia
-julia> using RoundingEmulation
+julia> using RoundingEmulator
 
 julia> add_up(0.1, 0.2)
 0.30000000000000004

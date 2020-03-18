@@ -1,4 +1,4 @@
-using RoundingEmulation
+using RoundingEmulator
 
 import Base.Rounding
 using Printf
