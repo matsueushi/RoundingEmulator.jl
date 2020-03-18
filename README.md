@@ -5,7 +5,10 @@ Emulate directed rounding using only the default rounding mode.
 [![Build Status](https://travis-ci.org/matsueushi/RoundingEmulation.jl.svg?branch=master)](https://travis-ci.org/matsueushi/RoundingEmulation.jl)
 
 This package is meant to produce the exact same results of `Rounding.setrounding` ([deprecated](https://github.com/JuliaLang/julia/pull/27166)) without switching rounding moddes.
-It requires `Base.Rounding.get_zero_subnormals() == true`. (See [Base.Rounding.get_zero_subnormals](https://docs.julialang.org/en/v1/base/numbers/#Base.Rounding.get_zero_subnormals))
+
+## Requirements 
+ - Julia 1.3 or higher
+ - `Base.Rounding.get_zero_subnormals() == true`. (See [Base.Rounding.get_zero_subnormals](https://docs.julialang.org/en/v1/base/numbers/#Base.Rounding.get_zero_subnormals))
 
 ## Use
 
