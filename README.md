@@ -4,7 +4,7 @@ Emulate directed rounding using only the default rounding mode.
 
 [![Build Status](https://travis-ci.org/matsueushi/RoundingEmulator.jl.svg?branch=master)](https://travis-ci.org/matsueushi/RoundingEmulator.jl)
 
-This package is meant to produce the exact same results of `Rounding.setrounding` ([deprecated](https://github.com/JuliaLang/julia/pull/27166)) without switching rounding moddes.
+This package is meant to produce the exact same results of `Rounding.setrounding` ([deprecated](https://github.com/JuliaLang/julia/pull/27166)) without switching rounding modes.
 
 ## Requirements 
  - Julia 1.3 or higher
