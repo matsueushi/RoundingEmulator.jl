@@ -14,7 +14,8 @@ else
 end
 
 for T in (Float32, Float64)
-    @eval log2u(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
+    # log2(nextfloat(zero(Float64)))
+    @eval log2smin(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
 end
 
 # Add
@@ -54,13 +55,12 @@ sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 # const
 for T in (Float32, Float64)
     # http://verifiedby.me/adiary/09
-    @eval abs_th(::Type{$T}) = $(ldexp(one(T), log2u(T) + 2 * precision(T) + 1))
-    @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2u(T)//2)))
+    @eval abs_th(::Type{$T}) = $(ldexp(one(T), log2smin(T) + 2 * precision(T) + 1))
+    @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2smin(T)//2)))
 end
 
 # Mul
 # http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
-
 function mul_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
@@ -91,7 +91,7 @@ end
 
 # Div
 for T in (Float32, Float64)
-    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -log2u(T) - 3 * Base.significand_bits(T)))
+    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -log2smin(T) - 3 * Base.significand_bits(T)))
     @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
 end
 
