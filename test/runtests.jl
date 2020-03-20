@@ -1,8 +1,7 @@
 using RoundingEmulator
-
-import Base.Rounding
-using Printf
 using Test
+
+include("utils.jl")
 
 special_value_list(T::Type) = [
     zero(T), -zero(T), 
@@ -14,84 +13,6 @@ special_value_list(T::Type) = [
     typemax(T), typemin(T),
     T(NaN)
 ]
-
-function check_op(op, updown, ai, bi, calc, raw)
-    if isequal(calc, raw)
-        true
-    else
-        @info("Erorr", op, updown)
-        @info(@sprintf("a = %0.18e, bit rep : %s", ai, bitstring(ai)))
-        @info(@sprintf("b = %0.18e, bit rep : %s", bi, bitstring(bi)))
-
-        @info(@sprintf("calc = %0.18e, bit rep : %s", calc, bitstring(calc)))
-        @info(@sprintf("raw = %0.18e, bit rep : %s", raw, bitstring(raw)))
-        false
-    end
-end
-
-function rounding_check(a, b)
-    elt = eltype(a)
-    for (op, base_op) in zip(("add", "sub", "mul", "div"), (:+, :-, :*, :/))
-        @eval begin
-            Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundNearest))
-            $(Symbol(op, "_up_calc")) = $(Symbol(op, "_up")).($a, $b)
-            $(Symbol(op, "_down_calc")) = $(Symbol(op, "_down")).($a, $b)
-
-            Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundUp))
-            $(Symbol(op, "_up_raw")) = broadcast($base_op, $a, $b)
-
-            Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundDown))
-            $(Symbol(op, "_down_raw")) = broadcast($base_op, $a, $b)
-
-            # Compare
-            for (ai, bi, up_calc, up_raw) in zip($a, $b, $(Symbol(op, "_up_calc")), $(Symbol(op, "_up_raw")))
-                @test check_op($op, "up", ai, bi, up_calc, up_raw)
-            end
-
-            for (ai, bi, down_calc, down_raw) in zip($a, $b, $(Symbol(op, "_down_calc")), $(Symbol(op, "_down_raw")))
-                @test check_op($op, "down", ai, bi, down_calc, down_raw)
-            end
-        end
-    end
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
-end
-
-function check_op_sqrt(op, updown, ai, calc, raw)
-    if isequal(calc, raw)
-        true
-    else
-        @info("Erorr", op, updown)
-        @info(@sprintf("a = %0.18e, bit rep : %s", ai, bitstring(ai)))
-
-        @info(@sprintf("calc = %0.18e, bit rep : %s", calc, bitstring(calc)))
-        @info(@sprintf("raw = %0.18e, bit rep : %s", raw, bitstring(raw)))
-        false
-    end
-end
-
-function rounding_check_sqrt(a)
-    elt = eltype(a)
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
-    # Sqrt
-    up_calc = sqrt_up.(a)
-    down_calc = sqrt_down.(a)
-
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundUp))
-    up_raw = sqrt.(a)
-
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundDown))
-    down_raw = sqrt.(a)
-
-    # Compare
-    for (ai, up_calc, up_raw) in zip(a, up_calc, up_raw)
-        @test check_op_sqrt("sqrt", "up", ai, up_calc, up_raw)
-    end
-
-    for (ai, down_calc, down_raw) in zip(a, down_calc, down_raw)
-        @test check_op_sqrt("sqrt", "down", ai, down_calc, down_raw)
-    end
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
-end
 
 for T in (Float64, Float32)
     @testset "$(T), Special Cases" begin
