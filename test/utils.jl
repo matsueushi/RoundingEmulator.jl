@@ -1,13 +1,14 @@
 import Base.Rounding
 using Printf
 
-function check_op(op, updown, ai, bi, calc, raw)
+function check_op(op, updown, calc, raw, args...)
     if isequal(calc, raw)
         true
     else
         @info("Erorr", op, updown)
-        @info(@sprintf("a = %0.18e, bit rep : %s", ai, bitstring(ai)))
-        @info(@sprintf("b = %0.18e, bit rep : %s", bi, bitstring(bi)))
+        for (i, v) in enumerate(args)
+            @info(@sprintf("a%d = %0.18e, bit rep : %s", i, v, bitstring(v)))
+        end
 
         @info(@sprintf("calc = %0.18e, bit rep : %s", calc, bitstring(calc)))
         @info(@sprintf("raw = %0.18e, bit rep : %s", raw, bitstring(raw)))
@@ -29,12 +30,12 @@ function rounding_check_op(op, base_op, a, b)
         down_raw = broadcast($base_op, $a, $b)
 
         # Compare
-        for (ai, bi, calc, raw) in zip($a, $b, up_calc, up_raw)
-            @test check_op($op, "up", ai, bi, calc, raw)
+        for (calc, raw, ai, bi) in zip(up_calc, up_raw, $a, $b)
+            @test check_op($op, "up", calc, raw, ai, bi)
         end
 
-        for (ai, bi, calc, raw) in zip($a, $b, down_calc, down_raw)
-            @test check_op($op, "down", ai, bi, calc, raw)
+        for (calc, raw, ai, bi) in zip(down_calc, down_raw, $a, $b)
+            @test check_op($op, "down", calc, raw, ai, bi)
         end
     end
 
@@ -45,19 +46,6 @@ function rounding_check(a, b)
         rounding_check_op(op, base_op, a, b)
     end
     Rounding.setrounding_raw(eltype(a), Rounding.to_fenv(RoundNearest))
-end
-
-function check_op_sqrt(op, updown, ai, calc, raw)
-    if isequal(calc, raw)
-        true
-    else
-        @info("Erorr", op, updown)
-        @info(@sprintf("a = %0.18e, bit rep : %s", ai, bitstring(ai)))
-
-        @info(@sprintf("calc = %0.18e, bit rep : %s", calc, bitstring(calc)))
-        @info(@sprintf("raw = %0.18e, bit rep : %s", raw, bitstring(raw)))
-        false
-    end
 end
 
 function rounding_check_sqrt(a)
@@ -74,12 +62,12 @@ function rounding_check_sqrt(a)
     down_raw = sqrt.(a)
 
     # Compare
-    for (ai, calc, raw) in zip(a, up_calc, up_raw)
-        @test check_op_sqrt("sqrt", "up", ai, calc, raw)
+    for (calc, raw, ai) in zip(up_calc, up_raw, a)
+        @test check_op("sqrt", "up", calc, raw, ai)
     end
 
-    for (ai, calc, raw) in zip(a, down_calc, down_raw)
-        @test check_op_sqrt("sqrt", "down", ai, calc, raw)
+    for (calc, raw, ai) in zip(down_calc, down_raw, a)
+        @test check_op("sqrt", "down", calc, raw,  ai)
     end
     Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
 end
