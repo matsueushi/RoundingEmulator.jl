@@ -16,29 +16,28 @@ function check_op(op, updown, calc, raw, args...)
     end
 end
 
-function rounding_check_op(op, base_op, a, b)
-    elt = eltype(a)
+function rounding_check_op(op, base_op, arrays...)
+    elt = eltype(arrays[1])
     @eval begin
         Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundNearest))
-        up_calc = $(Symbol(op, "_up")).($a, $b)
-        down_calc = $(Symbol(op, "_down")).($a, $b)
+        up_calc = $(Symbol(op, "_up")).($(arrays...))
+        down_calc = $(Symbol(op, "_down")).($(arrays...))
 
         Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundUp))
-        up_raw = broadcast($base_op, $a, $b)
+        up_raw = broadcast($base_op, $(arrays...))
 
         Rounding.setrounding_raw($elt, Rounding.to_fenv(RoundDown))
-        down_raw = broadcast($base_op, $a, $b)
+        down_raw = broadcast($base_op, $(arrays...))
 
         # Compare
-        for (calc, raw, ai, bi) in zip(up_calc, up_raw, $a, $b)
-            @test check_op($op, "up", calc, raw, ai, bi)
+        for (calc, raw, args) in zip(up_calc, up_raw, $(arrays...))
+            @test check_op($op, "up", calc, raw, args)
         end
 
-        for (calc, raw, ai, bi) in zip(down_calc, down_raw, $a, $b)
-            @test check_op($op, "down", calc, raw, ai, bi)
+        for (calc, raw, args) in zip(down_calc, down_raw, $(arrays...))
+            @test check_op($op, "down", calc, raw, args)
         end
     end
-
 end
 
 function rounding_check(a, b)
@@ -49,25 +48,6 @@ function rounding_check(a, b)
 end
 
 function rounding_check_sqrt(a)
-    elt = eltype(a)
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
-    # Sqrt
-    up_calc = sqrt_up.(a)
-    down_calc = sqrt_down.(a)
-
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundUp))
-    up_raw = sqrt.(a)
-
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundDown))
-    down_raw = sqrt.(a)
-
-    # Compare
-    for (calc, raw, ai) in zip(up_calc, up_raw, a)
-        @test check_op("sqrt", "up", calc, raw, ai)
-    end
-
-    for (calc, raw, ai) in zip(down_calc, down_raw, a)
-        @test check_op("sqrt", "down", calc, raw,  ai)
-    end
-    Rounding.setrounding_raw(elt, Rounding.to_fenv(RoundNearest))
+    rounding_check_op("sqrt", :sqrt, a)
+    Rounding.setrounding_raw(eltype(a), Rounding.to_fenv(RoundNearest)) 
 end
