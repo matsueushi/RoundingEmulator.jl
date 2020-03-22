@@ -33,6 +33,30 @@ end
     add_up(a, b)
 
 Computes `a + b` with the rounding mode `RoundUp`.
+
+# Examples
+```julia-repl
+julia> add_up(0.1, 0.2)
+0.30000000000000004
+
+julia> add_up(10.0^308, 10.0^308)
+Inf
+
+julia> add_up(-10.0^308, -10.0^308)
+-1.7976931348623157e308
+
+julia> add_up(-0.1, 0.1)
+0.0
+
+julia> add_up(0.0, 0.0)
+0.0
+
+julia> add_up(0.0, -0.0)
+0.0
+
+julia> add_up(-0.0, -0.0)
+-0.0
+```
 """
 function add_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.add12(a, b) # twosum
@@ -48,14 +72,29 @@ end
 
 Computes `a + b` with the rounding mode `RoundDown`.
 
-rule for signed zero:
-y = 0 -> x = a + b
-1) x ≂̸ 0 => x
-2) x = 0, a = -b ≂̸ 0 => -0.0
-3) x = 0, a = b = 0
-   (a, b) = (0.0, 0.0) => 0.0
-   (a, b) = (-0.0, 0.0) => -0.0
-   (a, b) = (-0.0, -0.0) => -0.0
+# Examples
+```julia-repl
+julia> add_down(0.1, 0.2)
+0.3
+
+julia> add_down(10.0^308, 10.0^308)
+1.7976931348623157e308
+
+julia> add_down(-10.0^308, -10.0^308)
+-Inf
+
+julia> add_down(-0.1, 0.1)
+-0.0
+
+julia> add_down(0.0, 0.0)
+0.0
+
+julia> add_down(0.0, -0.0)
+-0.0
+
+julia> add_down(-0.0, -0.0)
+-0.0
+```
 """
 function add_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.add12(a, b) # twosum
@@ -72,6 +111,33 @@ end
     sub_up(a, b)
 
 Computes `a - b` with the rounding mode `RoundUp`.
+
+# Examples
+```julia-repl
+julia> sub_up(-0.1, 0.2)
+-0.3
+
+julia> sub_up(-10.0^308, 10.0^308)
+-1.7976931348623157e308
+
+julia> sub_up(10.0^308, -10.0^308)
+Inf
+
+julia> sub_up(0.1, 0.1)
+0.0
+
+julia> sub_up(0.0, 0.0)
+0.0
+
+julia> sub_up(0.0, -0.0)
+0.0
+
+julia> sub_up(-0.0, 0.0)
+-0.0
+
+julia> sub_up(-0.0, -0.0)
+0.0
+```
 """
 sub_up(a::T, b::T) where {T<:SysFloat} = add_up(a, -b)
 
@@ -79,6 +145,32 @@ sub_up(a::T, b::T) where {T<:SysFloat} = add_up(a, -b)
     sub_down(a, b)
 
 Computes `a - b` with the rounding mode `RoundDown`.
+
+```julia-repl
+julia> sub_down(-0.1, 0.2)
+-0.30000000000000004
+
+julia> sub_down(-10.0^308, 10.0^308)
+-Inf
+
+julia> sub_down(10.0^308, -10.0^308)
+1.7976931348623157e308
+
+julia> sub_down(0.1, 0.1)
+-0.0
+
+julia> sub_down(0.0, 0.0)
+-0.0
+
+julia> sub_down(0.0, -0.0)
+0.0
+
+julia> sub_down(-0.0, 0.0)
+-0.0
+
+julia> sub_down(-0.0, -0.0)
+-0.0
+```
 """
 sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 
@@ -86,6 +178,33 @@ sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
     mul_up(a, b)
 
 Computes `a * b` with the rounding mode `RoundUp`.
+
+# Examples
+```julia-repl
+julia> mul_up(0.1, 0.2)
+0.020000000000000004
+
+julia> mul_up(10.0^308, 10.0^308)
+Inf
+
+julia> mul_up(10.0^308, -10.0^308)
+-1.7976931348623157e308
+
+julia> mul_up(5.0e-324, 5.0e-324)
+5.0e-324
+
+julia> mul_up(-0.1, 0.1)
+-0.01
+
+julia> mul_up(0.0, 0.0)
+0.0
+
+julia> mul_up(0.0, -0.0)
+-0.0
+
+julia> mul_up(-0.0, -0.0)
+0.0
+```
 """
 function mul_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
@@ -105,6 +224,33 @@ end
     mul_down(a, b)
 
 Computes `a * b` with the rounding mode `RoundDown`.
+
+# Examples
+```julia-repl
+julia> mul_down(0.1, 0.2)
+0.02
+
+julia> mul_down(10.0^308, 10.0^308)
+1.7976931348623157e308
+
+julia> mul_down(10.0^308, -10.0^308)
+-Inf
+
+julia> mul_down(5.0e-324, 5.0e-324)
+0.0
+
+julia> mul_down(-0.1, 0.1)
+-0.010000000000000002
+
+julia> mul_down(0.0, 0.0)
+0.0
+
+julia> mul_down(0.0, -0.0)
+-0.0
+
+julia> mul_down(-0.0, -0.0)
+0.0
+```
 """
 function mul_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
@@ -130,6 +276,15 @@ end
     div_up(a, b)
 
 Computes `a / b` with the rounding mode `RoundUp`.
+
+# Examples
+```julia-repl
+julia> div_up(0.1, 0.3)
+0.33333333333333337
+
+julia> div_up(-0.0, 1.0)
+-0.0
+````
 """
 function div_up(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
@@ -156,6 +311,15 @@ end
     div_down(a, b)
 
 Computes `a / b` with the rounding mode `RoundDown`.
+
+# Examples
+```julia-repl
+julia> div_down(0.1, 0.3)
+0.3333333333333333
+
+julia> div_down(-0.0, 1.0)
+-0.0
+````
 """
 function div_down(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
@@ -182,6 +346,15 @@ end
     sqrt_up(a)
 
 Computes `sqrt(a)` with the rounding mode `RoundUp`.
+
+# Examples
+```julia-repl
+julia> sqrt_up(2.0)
+1.4142135623730951
+
+julia> sqrt_up(-0.0)
+-0.0
+````
 """
 function sqrt_up(a::SysFloat)
     d = sqrt(a)
@@ -202,6 +375,15 @@ end
     sqrt_down(a)
 
 Computes `sqrt(a)` with the rounding mode `RoundDown`.
+
+# Examples
+```julia-repl
+julia> sqrt_down(2.0)
+1.414213562373095
+
+julia> sqrt_down(-0.0)
+-0.0
+````
 """
 function sqrt_down(a::SysFloat)
     d = sqrt(a)
