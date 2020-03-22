@@ -2,20 +2,28 @@ using Base.Math: ldexp
 
 const SysFloat = Union{Float32, Float64}
 
-if VERSION >= v"1.4"
-    using Base: exponent_bias, exponent_max
-else
+if VERSION < v"1.4.0"
     # The following definitions of exponent_bias and exopnent_max are taken from julia, base/float.jl. 
     # License is MIT: https://julialang.org/license
     for T in (Float32, Float64)
         @eval exponent_bias(::Type{$T}) = $(Int(Base.exponent_one(T) >> Base.significand_bits(T)))
         @eval exponent_max(::Type{$T}) = $(Int(Base.exponent_mask(T) >> Base.significand_bits(T)) - exponent_bias(T))
     end
+else
+    using Base: exponent_bias, exponent_max
 end
 
+# N_min^s : The smallest positive subnormal number (=nextfloat(zero(T)))
+# N_max^s : The largest positive subnormal number (=prevfloat(floatmin(T)))
+# N_min^n : The smallest positive normal number (=floatmin(T))
+# N_max^n : The largest positive normal number (=floatmax(T))
+
 for T in (Float32, Float64)
-    # log2(nextfloat(zero(Float64)))
-    @eval log2smin(::Type{$T}) = $(2 - exponent_bias(T) - precision(T))
+    # log_2(N_min^s)
+    # N_min^s = 2 * 2^{-precision(T)} * N_min^n
+    @eval exponent_smallest_subnormal(::Type{$T}) = $(Int(log2(eps(zero(T)))))
+    @eval exponent_product_errorfree_threshold(::Type{$T}) = $(exponent_smallest_subnormal(T) + 2 * Base.significand_bits(T))
+    @eval product_errorfree_threshold(::Type{$T}) = $(ldexp(one(T), exponent_product_errorfree_threshold(T)))
 end
 
 # Add
@@ -55,8 +63,7 @@ sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 # const
 for T in (Float32, Float64)
     # http://verifiedby.me/adiary/09
-    @eval abs_th(::Type{$T}) = $(ldexp(one(T), log2smin(T) + 2 * precision(T) + 1))
-    @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -log2smin(T)//2)))
+    @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -exponent_smallest_subnormal(T)//2)))
 end
 
 # Mul
@@ -65,7 +72,7 @@ function mul_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
-    elseif abs(x) > abs_th(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
+    elseif abs(x) > product_errorfree_threshold(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
         y > zero(y) ? nextfloat(x) : x
     else
         mult = mult_mul(T)
@@ -79,7 +86,7 @@ function mul_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
-    elseif abs(x) > abs_th(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
+    elseif abs(x) > product_errorfree_threshold(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
         y < zero(y) ? prevfloat(x) : x
     else
         mult = mult_mul(T)
@@ -91,7 +98,7 @@ end
 
 # Div
 for T in (Float32, Float64)
-    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -log2smin(T) - 3 * Base.significand_bits(T)))
+    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -exponent_smallest_subnormal(T) - 3 * Base.significand_bits(T)))
     @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
 end
 
@@ -102,7 +109,7 @@ function div_up(a::T, b::T) where {T<:SysFloat}
         # if b < 0, flip sign of a and b
         a = flipsign(a, b)
         b = abs(b)
-        if abs(a) < abs_th(T)
+        if abs(a) < product_errorfree_threshold(T)
             if abs(b) < abs_th_div(T)
                 a = ldexp(a, e_div(T))
                 b = ldexp(b, e_div(T))
@@ -123,7 +130,7 @@ function div_down(a::T, b::T) where {T<:SysFloat}
         # if b < 0, flip sign of a and b
         a = flipsign(a, b)
         b = abs(b)
-        if abs(a) < abs_th(T)
+        if abs(a) < product_errorfree_threshold(T)
             if abs(b) < abs_th_div(T)
                 a = ldexp(a, e_div(T))
                 b = ldexp(b, e_div(T))
@@ -142,7 +149,7 @@ function sqrt_up(a::SysFloat)
     d = sqrt(a)
     if isinf(d)
         typemax(d)
-    elseif a < abs_th(typeof(a))
+    elseif a < product_errorfree_threshold(typeof(a))
         a2 = ldexp(a, 2 * precision(a))
         d2 = ldexp(d, precision(d))
         x, y = Base.mul12(d2, d2)
@@ -157,7 +164,7 @@ function sqrt_down(a::SysFloat)
     d = sqrt(a)
     if isinf(d)
         typemax(d)
-    elseif a < abs_th(typeof(a))
+    elseif a < product_errorfree_threshold(typeof(a))
         a2 = ldexp(a, 2 * precision(a))
         d2 = ldexp(d, precision(d))
         x, y = Base.mul12(d2, d2)
