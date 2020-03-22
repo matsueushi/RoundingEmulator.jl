@@ -18,12 +18,15 @@ end
 # N_min^n : The smallest positive normal number (=floatmin(T))
 # N_max^n : The largest positive normal number (=floatmax(T))
 
+# constants
 for T in (Float32, Float64)
     # log_2(N_min^s)
     # N_min^s = 2 * 2^{-precision(T)} * N_min^n
-    @eval exponent_smallest_subnormal(::Type{$T}) = $(Int(log2(eps(zero(T)))))
+    @eval exponent_smallest_subnormal(::Type{$T}) = $(Int(log2(nextfloat(zero(T)))))
     @eval exponent_product_errorfree_threshold(::Type{$T}) = $(exponent_smallest_subnormal(T) + 2 * Base.significand_bits(T))
     @eval product_errorfree_threshold(::Type{$T}) = $(ldexp(one(T), exponent_product_errorfree_threshold(T)))
+    @eval exponent_product_underflow_mult(::Type{$T}) = $(ceil(Int, -exponent_smallest_subnormal(T)//2))
+    @eval product_underflow_mult(::Type{$T}) = $(ldexp(one(T), exponent_product_underflow_mult(T)))
 end
 
 """
@@ -79,12 +82,6 @@ Computes `a - b` with the rounding mode `RoundDown`.
 """
 sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 
-# const
-for T in (Float32, Float64)
-    # http://verifiedby.me/adiary/09
-    @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -exponent_smallest_subnormal(T)//2)))
-end
-
 """
     mul_up(a, b)
 
@@ -97,7 +94,7 @@ function mul_up(a::T, b::T) where {T<:SysFloat}
     elseif abs(x) > product_errorfree_threshold(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
         y > zero(y) ? nextfloat(x) : x
     else
-        mult = mult_mul(T)
+        mult = product_underflow_mult(T)
         s, s2 = Base.mul12(a * mult, b * mult)
         t = (x * mult) * mult
         t < s || (t == s && s2 > zero(s2)) ? nextfloat(x) : x
@@ -116,7 +113,7 @@ function mul_down(a::T, b::T) where {T<:SysFloat}
     elseif abs(x) > product_errorfree_threshold(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
         y < zero(y) ? prevfloat(x) : x
     else
-        mult = mult_mul(T)
+        mult = product_underflow_mult(T)
         s, s2 = Base.mul12(a * mult, b * mult)
         t = (x * mult) * mult 
         t > s || (t == s && s2 < zero(s2)) ? prevfloat(x) : x
