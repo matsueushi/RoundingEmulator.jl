@@ -123,7 +123,7 @@ julia> div_down(1.0, u)
 ```
 
 ## Signed zero
-`RoundingEmulator` follows special rules for signed zero specified in the chapter 6.3 of IEEE 754-2019.
+`RoundingEmulator` follows the special rules for signed zero specified in the chapter 6.3 of IEEE 754-2019.
 ```julia
 julia> add_up(-1.0, 1.0)
 0.0
@@ -157,4 +157,4 @@ Masahide Kashiwagi, Error Free Transformation (EFT) is NOT error-free, http://ve
 
 ## Link
 [kv - a C++ Library for Verified Numerical Computation](https://github.com/mskashi/kv)  
-[FastRounding.jl](https://github.com/JeffreySarnoff/FastRounding.jl)
+[JeffreySarnoff/FastRounding.jl](https://github.com/JeffreySarnoff/FastRounding.jl)

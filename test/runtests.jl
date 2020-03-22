@@ -4,14 +4,15 @@ using Test
 include("utils.jl")
 
 special_value_list(T::Type) = [
-    zero(T), -zero(T), 
-    nextfloat(zero(T)), prevfloat(zero(T)),
-    floatmin(T), -floatmin(T),
-    eps(T), -eps(T),
-    one(T), -one(T),
-    floatmax(T), -floatmax(T),
-    typemax(T), typemin(T),
-    T(NaN)
+    zero(T), -zero(T),                                  # 0.0, -0.0
+    one(T), -one(T),                                    # 1.0, -1.0
+    nextfloat(zero(T)), prevfloat(zero(T)),             # N_min^s, -N_min^s
+    prevfloat(floatmin(T)), nextfloat(-floatmin(T)),    # N_max^s, -N_max^s
+    floatmin(T), -floatmin(T),                          # N_min^n, -N_min^n
+    floatmax(T), -floatmax(T),                          # N_max^n, -N_max^n
+    eps(T), -eps(T),                                    # machine epsilon
+    typemax(T), typemin(T),                             # Inf, -Inf
+    T(NaN)                                              # NaN
 ]
 
 for T in (Float64, Float32)
