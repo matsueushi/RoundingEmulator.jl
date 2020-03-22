@@ -21,8 +21,8 @@ for T in (Float64, Float32)
         len = Base.length(special_values)
         a = repeat(special_values, len)
         b = sort(a)
-        rounding_check(a, b)
-        rounding_check_sqrt(filter(x->x ≥ zero(x), special_values))
+        rounding_check_unary(filter(x->x ≥ zero(x), special_values))
+        rounding_check_binary(a, b)
     end
 end
 
@@ -39,22 +39,22 @@ end
     ]
     a = ces[:, 1]
     b = ces[:, 2]
-    rounding_check(a, b)
-    rounding_check(b, a)
-    rounding_check_sqrt(abs.(a))
-    rounding_check_sqrt(abs.(b))
+    rounding_check_unary(abs.(a))
+    rounding_check_unary(abs.(b))
+    rounding_check_binary(a, b)
+    rounding_check_binary(b, a)
 end
 
 for n in 3:6
+    N = 10^n
     for T in (Float64, Float32)
         @testset "$(T), Random Sampling, 10^$(n)" begin
-            N = 10^n
             rand_a = reinterpret.(T, rand(Base.uinttype(T), N))
             rand_b = reinterpret.(T, rand(Base.uinttype(T), N))
-            rounding_check(rand_a, rand_b)
-            rounding_check(rand_b, rand_a)
-            rounding_check_sqrt(abs.(rand_a))
-            rounding_check_sqrt(abs.(rand_b))
+            rounding_check_unary(abs.(rand_a))
+            rounding_check_unary(abs.(rand_b))
+            rounding_check_binary(rand_a, rand_b)
+            rounding_check_binary(rand_b, rand_a)
         end
     end
 end
