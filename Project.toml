@@ -1,7 +1,7 @@
 name = "RoundingEmulator"
 uuid = "5eaf0fd0-dfba-4ccb-bf02-d820a40db705"
 authors = ["matsueushi <matsueushi@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [compat]
 julia = "1.3"
