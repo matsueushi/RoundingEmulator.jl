@@ -1,17 +1,7 @@
+using Base: significand_bits
 using Base.Math: ldexp
 
 const SysFloat = Union{Float32, Float64}
-
-if VERSION < v"1.4.0"
-    # The following definitions of exponent_bias and exopnent_max are taken from julia, base/float.jl. 
-    # License is MIT: https://julialang.org/license
-    for T in (Float32, Float64)
-        @eval exponent_bias(::Type{$T}) = $(Int(Base.exponent_one(T) >> Base.significand_bits(T)))
-        @eval exponent_max(::Type{$T}) = $(Int(Base.exponent_mask(T) >> Base.significand_bits(T)) - exponent_bias(T))
-    end
-else
-    using Base: exponent_bias, exponent_max
-end
 
 # N_min^s : The smallest positive subnormal number (=nextfloat(zero(T)))
 # N_max^s : The largest positive subnormal number (=prevfloat(floatmin(T)))
@@ -23,10 +13,14 @@ for T in (Float32, Float64)
     # log_2(N_min^s)
     # N_min^s = 2 * 2^{-precision(T)} * N_min^n
     @eval exponent_smallest_subnormal(::Type{$T}) = $(Int(log2(nextfloat(zero(T)))))
-    @eval exponent_product_errorfree_threshold(::Type{$T}) = $(exponent_smallest_subnormal(T) + 2 * Base.significand_bits(T))
+    @eval exponent_product_errorfree_threshold(::Type{$T}) = $(exponent_smallest_subnormal(T) + 2 * significand_bits(T))
     @eval product_errorfree_threshold(::Type{$T}) = $(ldexp(one(T), exponent_product_errorfree_threshold(T)))
     @eval exponent_product_underflow_mult(::Type{$T}) = $(ceil(Int, -exponent_smallest_subnormal(T)//2))
     @eval product_underflow_mult(::Type{$T}) = $(ldexp(one(T), exponent_product_underflow_mult(T)))
+    @eval exponent_quotient_errorfree_threshold(::Type{$T}) = $(-exponent_smallest_subnormal(T) - 3 * significand_bits(T))
+    @eval quotient_errorfree_threshold(::Type{$T}) = $(ldexp(one(T), exponent_quotient_errorfree_threshold(T)))
+    @eval exponent_quotient_underflow_mult(::Type{$T}) = $(2 * significand_bits(T) + 1)
+    @eval quotient_underflow_mult(::Type{$T}) = $(ldexp(one(T), exponent_quotient_underflow_mult(T)))
 end
 
 """
@@ -266,12 +260,6 @@ function mul_down(a::T, b::T) where {T<:SysFloat}
     end
 end
 
-# Div
-for T in (Float32, Float64)
-    @eval abs_th_div(::Type{$T}) = $(ldexp(one(T), -exponent_smallest_subnormal(T) - 3 * Base.significand_bits(T)))
-    @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
-end
-
 """
     div_up(a, b)
 
@@ -294,9 +282,10 @@ function div_up(a::T, b::T) where {T<:SysFloat}
         a = flipsign(a, b)
         b = abs(b)
         if abs(a) < product_errorfree_threshold(T)
-            if abs(b) < abs_th_div(T)
-                a = ldexp(a, e_div(T))
-                b = ldexp(b, e_div(T))
+            if abs(b) < quotient_errorfree_threshold(T)
+                mult = quotient_underflow_mult(T)
+                a *= mult
+                b *= mult
             # else
             #     return a < zero(a) ? zero(a) : nextfloat(zero(a))
             end
@@ -329,9 +318,10 @@ function div_down(a::T, b::T) where {T<:SysFloat}
         a = flipsign(a, b)
         b = abs(b)
         if abs(a) < product_errorfree_threshold(T)
-            if abs(b) < abs_th_div(T)
-                a = ldexp(a, e_div(T))
-                b = ldexp(b, e_div(T))
+            if abs(b) < quotient_errorfree_threshold(T)
+                mult = quotient_underflow_mult(T)
+                a *= mult
+                b *= mult
             # else
             #     return a < zero(a) ? prevfloat(zero(a)) : zero(a)
             end
