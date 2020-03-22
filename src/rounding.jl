@@ -26,7 +26,11 @@ for T in (Float32, Float64)
     @eval product_errorfree_threshold(::Type{$T}) = $(ldexp(one(T), exponent_product_errorfree_threshold(T)))
 end
 
-# Add
+"""
+    add_up(a, b)
+
+Computes `a + b` with the rounding mode `RoundUp`.
+"""
 function add_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
@@ -36,15 +40,20 @@ function add_up(a::T, b::T) where {T<:SysFloat}
     end
 end
 
-# add_down
-# rule for signed zero
-# y = 0 -> x = a + b
-# 1) x ≂̸ 0 => x
-# 2) x = 0, a = -b ≂̸ 0 => -0.0
-# 3) x = 0, a = b = 0
-#    (a, b) = (0.0, 0.0) => 0.0
-#    (a, b) = (-0.0, 0.0) => -0.0
-#    (a, b) = (-0.0, -0.0) => -0.0
+"""
+    add_down(a, b)
+
+Computes `a + b` with the rounding mode `RoundDown`.
+
+rule for signed zero:
+y = 0 -> x = a + b
+1) x ≂̸ 0 => x
+2) x = 0, a = -b ≂̸ 0 => -0.0
+3) x = 0, a = b = 0
+   (a, b) = (0.0, 0.0) => 0.0
+   (a, b) = (-0.0, 0.0) => -0.0
+   (a, b) = (-0.0, -0.0) => -0.0
+"""
 function add_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.add12(a, b) # twosum
     if isinf(x)
@@ -56,8 +65,18 @@ function add_down(a::T, b::T) where {T<:SysFloat}
     end
 end
 
-# Sub
+"""
+    sub_up(a, b)
+
+Computes `a - b` with the rounding mode `RoundUp`.
+"""
 sub_up(a::T, b::T) where {T<:SysFloat} = add_up(a, -b)
+
+"""
+    sub_down(a, b)
+
+Computes `a - b` with the rounding mode `RoundDown`.
+"""
 sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 
 # const
@@ -66,8 +85,11 @@ for T in (Float32, Float64)
     @eval mult_mul(::Type{$T}) = $(ldexp(one(T), ceil(Int, -exponent_smallest_subnormal(T)//2)))
 end
 
-# Mul
-# http://verifiedby.me/adiary/pub/kashi/image/201406/nas2014.pdf
+"""
+    mul_up(a, b)
+
+Computes `a * b` with the rounding mode `RoundUp`.
+"""
 function mul_up(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
@@ -82,6 +104,11 @@ function mul_up(a::T, b::T) where {T<:SysFloat}
     end
 end
 
+"""
+    mul_down(a, b)
+
+Computes `a * b` with the rounding mode `RoundDown`.
+"""
 function mul_down(a::T, b::T) where {T<:SysFloat}
     x, y = Base.mul12(a, b)
     if isinf(x)
@@ -102,6 +129,11 @@ for T in (Float32, Float64)
     @eval e_div(::Type{$T}) = $(2 * precision(T) - 1)
 end
 
+"""
+    div_up(a, b)
+
+Computes `a / b` with the rounding mode `RoundUp`.
+"""
 function div_up(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
@@ -123,6 +155,11 @@ function div_up(a::T, b::T) where {T<:SysFloat}
     end
 end
 
+"""
+    div_down(a, b)
+
+Computes `a / b` with the rounding mode `RoundDown`.
+"""
 function div_down(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
         a / b
@@ -144,7 +181,11 @@ function div_down(a::T, b::T) where {T<:SysFloat}
     end
 end
 
-# Sqrt
+"""
+    sqrt_up(a)
+
+Computes `sqrt(a)` with the rounding mode `RoundUp`.
+"""
 function sqrt_up(a::SysFloat)
     d = sqrt(a)
     if isinf(d)
@@ -160,6 +201,11 @@ function sqrt_up(a::SysFloat)
     end
 end
 
+"""
+    sqrt_down(a)
+
+Computes `sqrt(a)` with the rounding mode `RoundDown`.
+"""
 function sqrt_down(a::SysFloat)
     d = sqrt(a)
     if isinf(d)
