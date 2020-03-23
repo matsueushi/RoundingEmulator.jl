@@ -281,14 +281,10 @@ function div_up(a::T, b::T) where {T<:SysFloat}
         # if b < 0, flip sign of a and b
         a = flipsign(a, b)
         b = abs(b)
-        if abs(a) < product_errorfree_threshold(T)
-            if abs(b) < quotient_errorfree_threshold(T)
-                mult = quotient_underflow_mult(T)
-                a *= mult
-                b *= mult
-            # else
-            #     return a < zero(a) ? zero(a) : nextfloat(zero(a))
-            end
+        if abs(a) < product_errorfree_threshold(T) && abs(b) < quotient_errorfree_threshold(T)
+            mult = quotient_underflow_mult(T)
+            a *= mult
+            b *= mult
         end
         d = a / b
         x, y = Base.mul12(d, b)
@@ -317,14 +313,10 @@ function div_down(a::T, b::T) where {T<:SysFloat}
         # if b < 0, flip sign of a and b
         a = flipsign(a, b)
         b = abs(b)
-        if abs(a) < product_errorfree_threshold(T)
-            if abs(b) < quotient_errorfree_threshold(T)
+        if abs(a) < product_errorfree_threshold(T) && abs(b) < quotient_errorfree_threshold(T)
                 mult = quotient_underflow_mult(T)
                 a *= mult
                 b *= mult
-            # else
-            #     return a < zero(a) ? prevfloat(zero(a)) : zero(a)
-            end
         end
         d = a / b
         x, y = Base.mul12(d, b)
