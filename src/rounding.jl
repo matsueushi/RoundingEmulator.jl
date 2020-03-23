@@ -28,8 +28,7 @@ end
 
 Computes `a + b` with the rounding mode `RoundUp`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> add_up(0.1, 0.2)
 0.30000000000000004
 
@@ -66,8 +65,7 @@ end
 
 Computes `a + b` with the rounding mode `RoundDown`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> add_down(0.1, 0.2)
 0.3
 
@@ -106,8 +104,7 @@ end
 
 Computes `a - b` with the rounding mode `RoundUp`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> sub_up(-0.1, 0.2)
 -0.3
 
@@ -140,7 +137,7 @@ sub_up(a::T, b::T) where {T<:SysFloat} = add_up(a, -b)
 
 Computes `a - b` with the rounding mode `RoundDown`.
 
-```julia-repl
+```jldoctest
 julia> sub_down(-0.1, 0.2)
 -0.30000000000000004
 
@@ -173,8 +170,7 @@ sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 
 Computes `a * b` with the rounding mode `RoundUp`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> mul_up(0.1, 0.2)
 0.020000000000000004
 
@@ -219,8 +215,7 @@ end
 
 Computes `a * b` with the rounding mode `RoundDown`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> mul_down(0.1, 0.2)
 0.02
 
@@ -265,8 +260,7 @@ end
 
 Computes `a / b` with the rounding mode `RoundUp`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> div_up(0.1, 0.3)
 0.33333333333333337
 
@@ -297,8 +291,7 @@ end
 
 Computes `a / b` with the rounding mode `RoundDown`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> div_down(0.1, 0.3)
 0.3333333333333333
 
@@ -329,8 +322,7 @@ end
 
 Computes `sqrt(a)` with the rounding mode `RoundUp`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> sqrt_up(2.0)
 1.4142135623730951
 
@@ -358,8 +350,7 @@ end
 
 Computes `sqrt(a)` with the rounding mode `RoundDown`.
 
-# Examples
-```julia-repl
+```jldoctest
 julia> sqrt_down(2.0)
 1.414213562373095
 
