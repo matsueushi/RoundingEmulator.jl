@@ -266,7 +266,7 @@ julia> div_up(0.1, 0.3)
 
 julia> div_up(-0.0, 1.0)
 -0.0
-````
+```
 """
 function div_up(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
@@ -297,7 +297,7 @@ julia> div_down(0.1, 0.3)
 
 julia> div_down(-0.0, 1.0)
 -0.0
-````
+```
 """
 function div_down(a::T, b::T) where {T<:SysFloat}
     if iszero(a) || iszero(b) || isinf(a) || isinf(b) || isnan(a) || isnan(b)
@@ -328,7 +328,7 @@ julia> sqrt_up(2.0)
 
 julia> sqrt_up(-0.0)
 -0.0
-````
+```
 """
 function sqrt_up(a::SysFloat)
     d = sqrt(a)
@@ -356,7 +356,7 @@ julia> sqrt_down(2.0)
 
 julia> sqrt_down(-0.0)
 -0.0
-````
+```
 """
 function sqrt_down(a::SysFloat)
     d = sqrt(a)
