@@ -2,6 +2,7 @@ using RoundingEmulator
 using Test
 
 include("utils.jl")
+include("corner_case.jl")
 
 special_value_list(T::Type) = [
     zero(T), -zero(T),                                  # 0.0, -0.0
@@ -21,28 +22,9 @@ for T in (Float64, Float32)
         len = Base.length(special_values)
         a = repeat(special_values, len)
         b = sort(a)
-        rounding_check_unary(filter(x->x ≥ zero(x), special_values))
+        rounding_check_unary(filter(x->x ≥ zero(x), special_values)) # sqrt
         rounding_check_binary(a, b)
     end
-end
-
-@testset "Overflow, Underflow" begin
-    # TODO
-    # Add counterexamples for Float32
-
-    ces = [3.5630624444874539e+307  -1.7976931348623157e+308;   # twosum overflow, http://verifiedby.me/adiary/09
-           6.929001713869936e+236   2.5944475251952003e+71;     # twoprod overflow, http://verifiedby.me/adiary/09
-           -2.1634867667116802e-200 1.6930929484402486e-119;    # mul_up
-           6.640350825165134e-116   -1.1053488936824272e-202;   # mul_down
-           2.1963398713704127e-308  5.082385199753506e-149;     # div_up
-           -2.592045137385347e-308  -0.024378802704431428;      # div_down
-    ]
-    a = ces[:, 1]
-    b = ces[:, 2]
-    rounding_check_unary(abs.(a))
-    rounding_check_unary(abs.(b))
-    rounding_check_binary(a, b)
-    rounding_check_binary(b, a)
 end
 
 for n in 3:6
