@@ -8,3 +8,5 @@ makedocs(
         "References" => "references.md"
     ]
 )
+
+deploydocs(repo = "github.com/matsueushi/RoundingEmulator.jl")
