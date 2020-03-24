@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · RoundingEmulator.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">RoundingEmulator.jl</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Requirements-1"><span>Requirements</span></a></li><li><a class="tocitem" href="#Use-1"><span>Use</span></a></li><li><a class="tocitem" href="#Corner-cases-1"><span>Corner cases</span></a></li><li><a class="tocitem" href="#Signed-zero-1"><span>Signed zero</span></a></li></ul></li><li><a class="tocitem" href="functions/">Functions</a></li><li><a class="tocitem" href="references/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/matsueushi/RoundingEmulator.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="RoundingEmulator.jl-1"><a class="docs-heading-anchor" href="#RoundingEmulator.jl-1">RoundingEmulator.jl</a><a class="docs-heading-anchor-permalink" href="#RoundingEmulator.jl-1" title="Permalink"></a></h1><p>Emulate directed rounding using only the default rounding mode. </p><p>This package is meant to produce the exact same results of <code>Rounding.setrounding</code> (<a href="https://github.com/JuliaLang/julia/pull/27166">deprecated</a>) without switching rounding modes.</p><h2 id="Requirements-1"><a class="docs-heading-anchor" href="#Requirements-1">Requirements</a><a class="docs-heading-anchor-permalink" href="#Requirements-1" title="Permalink"></a></h2><ul><li>Julia 1.3 or higher</li><li><code>Base.Rounding.get_zero_subnormals() == true</code>. (See <a href="https://docs.julialang.org/en/v1/base/numbers/#Base.Rounding.get_zero_subnormals">Base.Rounding.get<em>zero</em>subnormals</a>)</li></ul><h2 id="Use-1"><a class="docs-heading-anchor" href="#Use-1">Use</a><a class="docs-heading-anchor-permalink" href="#Use-1" title="Permalink"></a></h2><p>This package provides</p><ul><li><a href="functions/#RoundingEmulator.add_up"><code>add_up</code></a>, <a href="functions/#RoundingEmulator.add_down"><code>add_down</code></a> - Addition</li><li><a href="functions/#RoundingEmulator.sub_up"><code>sub_up</code></a>, <a href="functions/#RoundingEmulator.sub_down"><code>sub_down</code></a> - Subtraction</li><li><a href="functions/#RoundingEmulator.mul_up"><code>mul_up</code></a>, <a href="functions/#RoundingEmulator.mul_down"><code>mul_down</code></a> - Multiplication</li><li><a href="functions/#RoundingEmulator.div_up"><code>div_up</code></a>, <a href="functions/#RoundingEmulator.div_down"><code>div_down</code></a> - Division</li><li><a href="functions/#RoundingEmulator.sqrt_up"><code>sqrt_up</code></a>, <a href="functions/#RoundingEmulator.sqrt_down"><code>sqrt_down</code></a> - Square root</li></ul><p><code>up</code>: Round up, <code>down</code>: Round down</p><pre><code class="language-julia">julia&gt; using RoundingEmulator
+
+julia&gt; add_up(0.1, 0.2)
+0.30000000000000004
+
+julia&gt; bitstring(add_up(0.1, 0.2))
+&quot;0011111111010011001100110011001100110011001100110011001100110100&quot;
+
+julia&gt; add_down(0.1, 0.2)
+0.3
+
+julia&gt; bitstring(add_down(0.1, 0.2))
+&quot;0011111111010011001100110011001100110011001100110011001100110011&quot;
+
+julia&gt; sub_up(-0.1, 0.2)
+-0.3
+
+julia&gt; bitstring(sub_up(-0.1, 0.2))
+&quot;1011111111010011001100110011001100110011001100110011001100110011&quot;
+
+julia&gt; sub_down(-0.1, 0.2)
+-0.30000000000000004
+
+julia&gt; bitstring(sub_down(-0.1, 0.2))
+&quot;1011111111010011001100110011001100110011001100110011001100110100&quot;
+
+julia&gt; mul_up(0.1, 0.2)
+0.020000000000000004
+
+julia&gt; bitstring(mul_up(0.1, 0.2))
+&quot;0011111110010100011110101110000101000111101011100001010001111100&quot;
+
+julia&gt; mul_down(0.1, 0.2)
+0.02
+
+julia&gt; bitstring(mul_down(0.1, 0.2))
+&quot;0011111110010100011110101110000101000111101011100001010001111011&quot;
+
+julia&gt; div_up(1.0, 3.0)
+0.33333333333333337
+
+julia&gt; bitstring(div_up(1.0, 3.0))
+&quot;0011111111010101010101010101010101010101010101010101010101010110&quot;
+
+julia&gt; div_down(1.0, 3.0)
+0.3333333333333333
+
+julia&gt; bitstring(div_down(1.0, 3.0))
+&quot;0011111111010101010101010101010101010101010101010101010101010101&quot;
+
+julia&gt; sqrt_up(2.0)
+1.4142135623730951
+
+julia&gt; bitstring(sqrt_up(2.0))
+&quot;0011111111110110101000001001111001100110011111110011101111001101&quot;
+
+julia&gt; sqrt_down(2.0)
+1.414213562373095
+
+julia&gt; bitstring(sqrt_down(2.0))
+&quot;0011111111110110101000001001111001100110011111110011101111001100&quot;</code></pre><h2 id="Corner-cases-1"><a class="docs-heading-anchor" href="#Corner-cases-1">Corner cases</a><a class="docs-heading-anchor-permalink" href="#Corner-cases-1" title="Permalink"></a></h2><pre><code class="language-julia">julia&gt; u = nextfloat(zero(Float64))
+5.0e-324
+
+julia&gt; v = floatmax(Float64)
+1.7976931348623157e308
+
+julia&gt; v + v
+Inf
+
+julia&gt; add_up(v, v)
+Inf
+
+julia&gt; add_down(v, v)
+1.7976931348623157e308
+
+julia&gt; u * u
+0.0
+
+julia&gt; mul_up(u, u)
+5.0e-324
+
+julia&gt; mul_down(u, u)
+0.0
+
+julia&gt; 1.0 / u
+Inf
+
+julia&gt; div_up(1.0, u)
+Inf
+
+julia&gt; div_down(1.0, u)
+1.7976931348623157e308</code></pre><h2 id="Signed-zero-1"><a class="docs-heading-anchor" href="#Signed-zero-1">Signed zero</a><a class="docs-heading-anchor-permalink" href="#Signed-zero-1" title="Permalink"></a></h2><p><code>RoundingEmulator</code> follows the special rules for signed zero specified in the chapter 6.3 of IEEE 754-2019.</p><pre><code class="language-julia">julia&gt; add_up(-1.0, 1.0)
+0.0
+
+julia&gt; add_down(-1.0, 1.0)
+-0.0
+
+julia&gt; add_up(-0.0, 0.0)
+0.0
+
+julia&gt; add_down(-0.0, 0.0)
+-0.0
+
+julia&gt; add_up(0.0, 0.0)
+0.0
+
+julia&gt; add_down(0.0, 0.0)
+0.0
+
+julia&gt; sqrt_up(-0.0)
+-0.0
+
+julia&gt; sqrt_down(-0.0)
+-0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="functions/">Functions »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 24 March 2020 04:04">Tuesday 24 March 2020</span>. Using Julia version 1.4.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
