@@ -1,4 +1,4 @@
-using Base: significand_bits
+using Base: add12, mul12, significand_bits
 using Base.Math: ldexp
 
 const SysFloat = Union{Float32, Float64}
@@ -53,7 +53,7 @@ julia> add_up(-0.0, -0.0)
 ```
 """
 function add_up(a::T, b::T) where {T<:SysFloat}
-    x, y = Base.add12(a, b) # twosum
+    x, y = add12(a, b) # twosum
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
     else
@@ -91,7 +91,7 @@ julia> add_down(-0.0, -0.0)
 ```
 """
 function add_down(a::T, b::T) where {T<:SysFloat}
-    x, y = Base.add12(a, b) # twosum
+    x, y = add12(a, b) # twosum
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
     elseif y < zero(y)
@@ -202,14 +202,14 @@ julia> mul_up(-0.0, -0.0)
 ```
 """
 function mul_up(a::T, b::T) where {T<:SysFloat}
-    x, y = Base.mul12(a, b)
+    x, y = mul12(a, b)
     if isinf(x)
         ifelse(x == typemin(x) && isfinite(a) && isfinite(b), -floatmax(x), x)
     elseif abs(x) > product_errorfree_threshold(T) # not zero(x): (a, b) = (-2.1634867667116802e-200, 1.6930929484402486e-119) fails
         y > zero(y) ? nextfloat(x) : x
     else
         mult = product_underflow_mult(T)
-        s, s2 = Base.mul12(a * mult, b * mult)
+        s, s2 = mul12(a * mult, b * mult)
         t = (x * mult) * mult
         t < s || (t == s && s2 > zero(s2)) ? nextfloat(x) : x
     end
@@ -248,14 +248,14 @@ julia> mul_down(-0.0, -0.0)
 ```
 """
 function mul_down(a::T, b::T) where {T<:SysFloat}
-    x, y = Base.mul12(a, b)
+    x, y = mul12(a, b)
     if isinf(x)
         ifelse(x == typemax(x) && isfinite(a) && isfinite(b), floatmax(x), x)
     elseif abs(x) > product_errorfree_threshold(T) # not zero(x): (a, b) = (6.640350825165134e-116, -1.1053488936824272e-202) fails
         y < zero(y) ? prevfloat(x) : x
     else
         mult = product_underflow_mult(T)
-        s, s2 = Base.mul12(a * mult, b * mult)
+        s, s2 = mul12(a * mult, b * mult)
         t = (x * mult) * mult 
         t > s || (t == s && s2 < zero(s2)) ? prevfloat(x) : x
     end
@@ -270,6 +270,9 @@ Computes `a / b` with the rounding mode
 ```jldoctest
 julia> div_up(0.1, 0.3)
 0.33333333333333337
+
+julia> div_up(2.0^-100, 2.0^1000)
+5.0e-324
 
 julia> div_up(-0.0, 1.0)
 -0.0
@@ -288,7 +291,7 @@ function div_up(a::T, b::T) where {T<:SysFloat}
             b *= mult
         end
         d = a / b
-        x, y = Base.mul12(d, b)
+        x, y = mul12(d, b)
         x < a || (x == a && y < zero(y)) ? nextfloat(d) : d
     end
 end
@@ -302,6 +305,9 @@ Computes `a / b` with the rounding mode
 ```jldoctest
 julia> div_down(0.1, 0.3)
 0.3333333333333333
+
+julia> div_down(2.0^-100, 2.0^1000)
+0.0
 
 julia> div_down(-0.0, 1.0)
 -0.0
@@ -320,7 +326,7 @@ function div_down(a::T, b::T) where {T<:SysFloat}
                 b *= mult
         end
         d = a / b
-        x, y = Base.mul12(d, b)
+        x, y = mul12(d, b)
         x > a || (x == a && y > zero(y)) ? prevfloat(d) : d
     end
 end
@@ -335,6 +341,9 @@ Computes `sqrt(a)` with the rounding mode
 julia> sqrt_up(2.0)
 1.4142135623730951
 
+julia> sqrt_up(0.0)
+0.0
+
 julia> sqrt_up(-0.0)
 -0.0
 ```
@@ -346,10 +355,10 @@ function sqrt_up(a::SysFloat)
     elseif a < product_errorfree_threshold(typeof(a))
         a2 = ldexp(a, 2 * precision(a))
         d2 = ldexp(d, precision(d))
-        x, y = Base.mul12(d2, d2)
+        x, y = mul12(d2, d2)
         x < a2 || (x == a2 && y < zero(y)) ? nextfloat(d) : d
     else
-        x, y = Base.mul12(d, d)
+        x, y = mul12(d, d)
         x < a || (x == a  && y < zero(y)) ? nextfloat(d) : d
     end
 end
@@ -364,6 +373,9 @@ Computes `sqrt(a)` with the rounding mode
 julia> sqrt_down(2.0)
 1.414213562373095
 
+julia> sqrt_down(0.0)
+0.0
+
 julia> sqrt_down(-0.0)
 -0.0
 ```
@@ -375,10 +387,10 @@ function sqrt_down(a::SysFloat)
     elseif a < product_errorfree_threshold(typeof(a))
         a2 = ldexp(a, 2 * precision(a))
         d2 = ldexp(d, precision(d))
-        x, y = Base.mul12(d2, d2)
+        x, y = mul12(d2, d2)
         x > a2 || (x == a2 && y > zero(y)) ? prevfloat(d) : d
     else
-        x, y = Base.mul12(d, d)
+        x, y = mul12(d, d)
         x > a || (x == a  && y > zero(y)) ? prevfloat(d) : d
     end
 end
