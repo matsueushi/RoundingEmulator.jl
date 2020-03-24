@@ -26,7 +26,8 @@ end
 """
     add_up(a, b)
 
-Computes `a + b` with the rounding mode `RoundUp`.
+Computes `a + b` with the rounding mode 
+[`Base.Rounding.RoundUp`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundUp).
 
 ```jldoctest
 julia> add_up(0.1, 0.2)
@@ -63,7 +64,8 @@ end
 """
     add_down(a, b)
 
-Computes `a + b` with the rounding mode `RoundDown`.
+Computes `a + b` with the rounding mode
+[`Base.Rounding.RoundDown`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundDown).
 
 ```jldoctest
 julia> add_down(0.1, 0.2)
@@ -102,7 +104,8 @@ end
 """
     sub_up(a, b)
 
-Computes `a - b` with the rounding mode `RoundUp`.
+Computes `a - b` with the rounding mode
+[`Base.Rounding.RoundUp`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundUp).
 
 ```jldoctest
 julia> sub_up(-0.1, 0.2)
@@ -135,7 +138,8 @@ sub_up(a::T, b::T) where {T<:SysFloat} = add_up(a, -b)
 """
     sub_down(a, b)
 
-Computes `a - b` with the rounding mode `RoundDown`.
+Computes `a - b` with the rounding mode
+[`Base.Rounding.RoundDown`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundDown).
 
 ```jldoctest
 julia> sub_down(-0.1, 0.2)
@@ -168,7 +172,8 @@ sub_down(a::T, b::T) where {T<:SysFloat} = add_down(a, -b)
 """
     mul_up(a, b)
 
-Computes `a * b` with the rounding mode `RoundUp`.
+Computes `a * b` with the rounding mode
+[`Base.Rounding.RoundUp`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundUp).
 
 ```jldoctest
 julia> mul_up(0.1, 0.2)
@@ -213,7 +218,8 @@ end
 """
     mul_down(a, b)
 
-Computes `a * b` with the rounding mode `RoundDown`.
+Computes `a * b` with the rounding mode
+[`Base.Rounding.RoundDown`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundDown).
 
 ```jldoctest
 julia> mul_down(0.1, 0.2)
@@ -258,7 +264,8 @@ end
 """
     div_up(a, b)
 
-Computes `a / b` with the rounding mode `RoundUp`.
+Computes `a / b` with the rounding mode
+[`Base.Rounding.RoundUp`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundUp).
 
 ```jldoctest
 julia> div_up(0.1, 0.3)
@@ -289,7 +296,8 @@ end
 """
     div_down(a, b)
 
-Computes `a / b` with the rounding mode `RoundDown`.
+Computes `a / b` with the rounding mode
+[`Base.Rounding.RoundDown`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundDown).
 
 ```jldoctest
 julia> div_down(0.1, 0.3)
@@ -320,7 +328,8 @@ end
 """
     sqrt_up(a)
 
-Computes `sqrt(a)` with the rounding mode `RoundUp`.
+Computes `sqrt(a)` with the rounding mode
+[`Base.Rounding.RoundUp`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundUp).
 
 ```jldoctest
 julia> sqrt_up(2.0)
@@ -348,7 +357,8 @@ end
 """
     sqrt_down(a)
 
-Computes `sqrt(a)` with the rounding mode `RoundDown`.
+Computes `sqrt(a)` with the rounding mode
+[`Base.Rounding.RoundDown`](https://docs.julialang.org/en/v1/base/math/#Base.Rounding.RoundDown).
 
 ```jldoctest
 julia> sqrt_down(2.0)
