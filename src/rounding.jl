@@ -21,6 +21,7 @@ for T in (Float32, Float64)
     @eval quotient_errorfree_threshold(::Type{$T}) = $(ldexp(one(T), exponent_quotient_errorfree_threshold(T)))
     @eval exponent_quotient_underflow_mult(::Type{$T}) = $(2 * significand_bits(T) + 1)
     @eval quotient_underflow_mult(::Type{$T}) = $(ldexp(one(T), exponent_quotient_underflow_mult(T)))
+    @eval inverse_smallest_normal(::Type{$T}) = $(ldexp(one(T), precision(T)))
 end
 
 """
@@ -97,7 +98,7 @@ function add_down(a::T, b::T) where {T<:SysFloat}
     elseif y < zero(y)
         prevfloat(x)
     else
-        ifelse(x == zero(x) && (signbit(a) || signbit(b)), -zero(x), x)
+        ifelse(iszero(x) && (signbit(a) || signbit(b)), -zero(x), x)
     end
 end
 
@@ -353,8 +354,9 @@ function sqrt_up(a::SysFloat)
     if isinf(d)
         typemax(d)
     elseif a < product_errorfree_threshold(typeof(a))
-        a2 = ldexp(a, 2 * precision(a))
-        d2 = ldexp(d, precision(d))
+        invn = inverse_smallest_normal(typeof(a))
+        a2 = a * invn^2
+        d2 = d * invn
         x, y = mul12(d2, d2)
         x < a2 || (x == a2 && y < zero(y)) ? nextfloat(d) : d
     else
@@ -385,8 +387,9 @@ function sqrt_down(a::SysFloat)
     if isinf(d)
         typemax(d)
     elseif a < product_errorfree_threshold(typeof(a))
-        a2 = ldexp(a, 2 * precision(a))
-        d2 = ldexp(d, precision(d))
+        invn = inverse_smallest_normal(typeof(a))
+        a2 = a * invn^2
+        d2 = d * invn
         x, y = mul12(d2, d2)
         x > a2 || (x == a2 && y > zero(y)) ? prevfloat(d) : d
     else
