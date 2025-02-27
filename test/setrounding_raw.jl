@@ -20,16 +20,14 @@ function rounding_check(op, base_op, arrays...)
     elt = eltype(first(arrays))
     setrounding_raw(elt, to_fenv(RoundNearest))
 
-    @eval begin
-        up_calc = broadcast($(Symbol(op, "_up")), $(arrays...))
-        down_calc = broadcast($(Symbol(op, "_down")), $(arrays...))
+    up_calc = @eval broadcast($(Symbol(op, "_up")), $(arrays...))
+    down_calc = @eval broadcast($(Symbol(op, "_down")), $(arrays...))
 
-        setrounding_raw($elt, to_fenv(RoundUp))
-        up_raw = broadcast($base_op, $(arrays...))
-    
-        setrounding_raw($elt, to_fenv(RoundDown))
-        down_raw = broadcast($base_op, $(arrays...))
-    end
+    setrounding_raw(elt, to_fenv(RoundUp))
+    up_raw = @eval broadcast($base_op, $(arrays...))
+
+    setrounding_raw(elt, to_fenv(RoundDown))
+    down_raw = @eval broadcast($base_op, $(arrays...))
 
     # Compare
     for (calc, raw, args) in zip(up_calc, up_raw, zip(arrays...))
@@ -40,7 +38,7 @@ function rounding_check(op, base_op, arrays...)
         @test compare_calc_raw(op, "down", calc, raw, args)
     end
 
-    setrounding_raw(elt, to_fenv(RoundNearest)) 
+    setrounding_raw(elt, to_fenv(RoundNearest))
 end
 
 rounding_check_unary(a::AbstractVector) = rounding_check(:sqrt, :sqrt, a)
