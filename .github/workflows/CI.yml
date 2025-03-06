@@ -16,16 +16,24 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - "1.6"
-          - "1.8"
-          - "1.10"
+          - "1.9"
+          - "lts"
           - "nightly"
         os:
           - ubuntu-latest
-          - macOS-latest
           - windows-latest
+          - macOS-latest
         arch:
           - x64
+          - aarch64
+        exclude:
+          - os: ubuntu-latest
+            arch: aarch64
+          - os: windows-latest
+            arch: aarch64
+          - os: macOS-latest
+            arch: x64
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -36,17 +44,8 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
 
-      - name: Cache Julia artifacts
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
+      - name: Cache Julia packages
+        uses: julia-actions/cache@v1
 
       - name: Build package
         uses: julia-actions/julia-buildpkg@v1
